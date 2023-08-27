@@ -1,4 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { $Enums } from '@prisma/client';
 
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
@@ -13,6 +14,18 @@ const validateISOString = (dateTime: DateTime) => {
 	}
 };
 
+export interface MealCategorySummary {
+	name: $Enums.MealCategoryType;
+	id: string;
+	calorieCount: number;
+	foodItems: string[];
+}
+
+export interface DailySummary {
+	calorieLimit: number;
+	mealCategorySummaries: MealCategorySummary[];
+}
+
 export const foodEntriesRouter = createTRPCRouter({
 	getDailyCalorieSummary: protectedProcedure
 		.input(
@@ -20,7 +33,7 @@ export const foodEntriesRouter = createTRPCRouter({
 				day: z.string().nonempty(),
 			})
 		)
-		.query(async ({ input: { day }, ctx: { prisma, session } }) => {
+		.query(async ({ input: { day }, ctx: { prisma, session } }): Promise<DailySummary> => {
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
 
@@ -46,6 +59,15 @@ export const foodEntriesRouter = createTRPCRouter({
 				},
 			});
 
+			const { calorieLimit } = await prisma.goal.findFirstOrThrow({
+				select: {
+					calorieLimit: true,
+				},
+				where: {
+					userId,
+				},
+			});
+
 			type FoodEntry = (typeof entries)[number]['foodEntries'];
 
 			const foodEntryReduce = (foodEntry: FoodEntry) => {
@@ -53,7 +75,7 @@ export const foodEntriesRouter = createTRPCRouter({
 					const caloriesPerServing = foodItemInfo.caloriesPerServing;
 					const servingSize = foodItemInfo.servingSize;
 					const caloriesPerUnitOfMeasurement = caloriesPerServing / servingSize;
-					const totalCalories = servingQuantity * caloriesPerUnitOfMeasurement;
+					const totalCalories = Math.round(servingQuantity * caloriesPerUnitOfMeasurement);
 
 					return total + totalCalories;
 				}, 0);
@@ -68,6 +90,6 @@ export const foodEntriesRouter = createTRPCRouter({
 				};
 			});
 
-			return entrySummaries;
+			return { calorieLimit: calorieLimit ?? 0, mealCategorySummaries: entrySummaries };
 		}),
 });

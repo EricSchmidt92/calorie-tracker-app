@@ -74,7 +74,8 @@ const Footer = () => {
 
 	if (!sessionData?.user) return undefined;
 
-	const primaryColor = colors.success[4];
+	// const primaryColor = colors.success[4];
+	const primaryColor = colors.primaryPink[3];
 	const buttonBackgroundColor = colors.neutral[6];
 
 	return (
@@ -128,7 +129,8 @@ const NavButton = ({
 }) => {
 	const Icon = Icons[iconName];
 	const { colors } = useMantineTheme();
-	const primaryColor = colors.success[4];
+	const primaryColor = colors.primaryPink[3];
+	// const primaryColor = colors.success[4];
 	const color = active ? primaryColor : colors.dark[0];
 
 	return (

@@ -36,7 +36,7 @@ model Goal {
     id           String @id @default(cuid())
     userId       String
     goalWeight   Float?
-    calorieLimit Int?
+    calorieLimit Int    @default(0)
     user         User   @relation(fields: [userId], references: [id])
 }
 

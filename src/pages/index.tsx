@@ -1,5 +1,14 @@
 import { api } from '@/utils/api';
-import { Button, Card, Group, ScrollArea, Stack, Text, useMantineTheme } from '@mantine/core';
+import {
+	Button,
+	Card,
+	Divider,
+	Group,
+	ScrollArea,
+	Stack,
+	Text,
+	useMantineTheme,
+} from '@mantine/core';
 import { MealCategoryType } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { signIn, signOut, useSession } from 'next-auth/react';
@@ -7,6 +16,7 @@ import Head from 'next/head';
 import * as Icons from 'tabler-icons-react';
 import { NextPageWithLayout } from './_app';
 import styles from './index.module.css';
+import { DailySummary, MealCategorySummary } from '@/server/api/routers/foodEntries';
 
 type IconName = keyof typeof Icons;
 
@@ -31,7 +41,7 @@ const Home: NextPageWithLayout = () => {
 };
 
 const HomeAuthenticated = () => {
-	const { data: dailySummaries, error } = api.foodEntries.getDailyCalorieSummary.useQuery({
+	const { data: dailySummary, error } = api.foodEntries.getDailyCalorieSummary.useQuery({
 		day: DateTime.now().toISODate() ?? '',
 	});
 
@@ -41,7 +51,7 @@ const HomeAuthenticated = () => {
 		console.error('error getting data: ', error);
 	}
 
-	console.log(dailySummaries);
+	console.log(dailySummary);
 
 	return (
 		<>
@@ -51,12 +61,11 @@ const HomeAuthenticated = () => {
 				<link rel='icon' href='/favicon.ico' />
 				<meta name='viewport' content='minimum-scale=1, initial-scale=1, width=device-width' />
 			</Head>
-			<AuthShowcase />
+			{/* <AuthShowcase /> */}
 			<ScrollArea>
 				<Stack maw={breakpoints.xs} justify='center' mx='auto'>
-					{/* <MealSummaryCard title='Breakfast' calories={150} iconName='Bread' /> */}
-					{dailySummaries?.map(({ name, calorieCount, id }) => (
-						<MealSummaryCard key={id} title={name} calories={calorieCount} />
+					{dailySummary?.mealCategorySummaries?.map(dailySummary => (
+						<MealSummaryCard key={dailySummary.id} summary={dailySummary} />
 					))}
 				</Stack>
 			</ScrollArea>
@@ -65,40 +74,58 @@ const HomeAuthenticated = () => {
 };
 
 interface MealSummaryCardProps {
-	title: MealCategoryType;
-	calories?: number;
+	summary: MealCategorySummary;
 }
 
-const MealSummaryCard = ({ title, calories }: MealSummaryCardProps) => {
+const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 	const IconMap: Record<MealCategoryType, IconName> = {
-		Breakfast: 'Coffee', // Maybe Egg or EggFried??
+		Breakfast: 'Egg', // Maybe Egg or EggFried?? or coffee
 		Lunch: 'Salad', // or cheese?
 		Dinner: 'Soup', // Sausage? Soup? Fish?
 		Snack: 'Cookie', // or ice cream?
 	};
 
-	const iconName = IconMap[title];
+	const { name, calorieCount, foodItems } = summary;
+
+	const iconName = IconMap[name];
 	const Icon = Icons[iconName];
 
 	const { colors } = useMantineTheme();
-	console.log('calories: ', calories);
+	console.log('calories: ', calorieCount);
 
 	return (
 		<Card>
-			<Group position='apart'>
-				<Group>
-					<Icon size={30} />
-					<Text>
-						{title} {calories ? `- ${calories} calories` : ''}
-					</Text>
+			<Stack spacing='xs'>
+				<Group position='apart'>
+					<Group sx={{ flex: 2 }}>
+						<Icon size={35} />
+						<Stack spacing={0}>
+							<Text fw='bold'>{name}</Text>
+							<Text w={200} truncate size='xs'>
+								{foodItems.join(', ')}
+							</Text>
+						</Stack>
+					</Group>
+					<Icons.CirclePlus
+						strokeWidth={1}
+						size={50}
+						fill={colors.success[3]}
+						// fill={colors.purple[3]}
+						// fill={colors.primaryPink[3]}
+						// fill={colors.success[4]}
+						// fill={colors.base[6]}
+						color={colors.neutral[6]}
+					/>
 				</Group>
-				<Icons.CirclePlus
-					strokeWidth={1}
-					size={35}
-					fill={colors.primaryPink[3]}
-					color={colors.neutral[6]}
-				/>
-			</Group>
+				{calorieCount > 0 && (
+					<>
+						<Divider color={colors.neutral[4]} />
+						<Text fw='bold' align='center' size='sm'>
+							{calorieCount} calories
+						</Text>
+					</>
+				)}
+			</Stack>
 		</Card>
 	);
 };
