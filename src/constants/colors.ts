@@ -25,7 +25,7 @@ export const themeColors: MantineThemeOverride['colors'] = {
 		'#665183',
 		'#61349F',
 	],
-	lightOrange: [
+	accent: [
 		'#F8F1EA',
 		'#F2DCC4',
 		'#F4C99A',

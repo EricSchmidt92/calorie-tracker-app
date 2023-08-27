@@ -3,7 +3,7 @@ import { themeColors } from '@/constants/colors';
 type ExtendedCustomColors =
 	| 'primaryPink'
 	| 'purple'
-	| 'lightOrange'
+	| 'accent'
 	| 'neutral'
 	| 'base'
 	| 'info'

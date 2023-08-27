@@ -7,8 +7,8 @@ const withPWA = require('next-pwa')({
 	dest: 'public',
 	register: true,
 	skipWaiting: false,
-	scope: 'http://10.0.0.174:3000',
-	// disable: false,
-	disable: process.env.NODE_ENV === 'development',
+	scope: process.env.NEXTAUTH_URL,
+	disable: false,
+	// disable: process.env.NODE_ENV === 'development',
 });
 module.exports = withPWA({ reactStrictMode: true });

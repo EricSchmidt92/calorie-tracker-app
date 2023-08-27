@@ -46,8 +46,6 @@ export const foodEntriesRouter = createTRPCRouter({
 				},
 			});
 
-			console.log('entries: ', entries);
-
 			type FoodEntry = (typeof entries)[number]['foodEntries'];
 
 			const foodEntryReduce = (foodEntry: FoodEntry) => {

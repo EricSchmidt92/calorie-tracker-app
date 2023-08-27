@@ -81,12 +81,14 @@ const Footer = () => {
 		<Group
 			align='start'
 			bg='neutral.6'
-			pos='absolute'
+			pos='sticky'
 			bottom={0}
 			left={0}
 			right={0}
-			h='10%'
-			pt={1}
+			h='12%'
+			mih='12%'
+			pt={2}
+			pb='md'
 			sx={{
 				zIndex: 2,
 				justifyContent: 'space-evenly',
