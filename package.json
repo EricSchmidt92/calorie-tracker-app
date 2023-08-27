@@ -7,7 +7,11 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "db-seed": "NODE_ENV=development prisma db seed"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -23,6 +27,7 @@
     "@trpc/next": "^10.34.0",
     "@trpc/react-query": "^10.34.0",
     "@trpc/server": "^10.34.0",
+    "luxon": "^3.4.2",
     "next": "^13.4.2",
     "next-auth": "^4.22.4",
     "next-pwa": "^5.6.0",
@@ -30,6 +35,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "superjson": "^1.13.1",
+    "tabler-icons-react": "^1.56.0",
+    "tsx": "^3.12.7",
     "workbox-core": "^7.0.0",
     "workbox-precaching": "^7.0.0",
     "workbox-routing": "^7.0.0",
@@ -38,7 +45,9 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
     "@types/eslint": "^8.37.0",
+    "@types/luxon": "^3.3.1",
     "@types/next-pwa": "^5.6.4",
     "@types/node": "^18.16.0",
     "@types/react": "^18.2.6",
