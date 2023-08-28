@@ -7,6 +7,8 @@ import {
 	ScrollArea,
 	Stack,
 	Text,
+	createStyles,
+	em,
 	useMantineTheme,
 } from '@mantine/core';
 import { MealCategoryType } from '@prisma/client';
@@ -77,13 +79,25 @@ interface MealSummaryCardProps {
 	summary: MealCategorySummary;
 }
 
+const useStyles = createStyles(theme => ({
+	text: {
+		width: 200,
+
+		[`@media (max-width: ${em(370)})`]: {
+			width: '100px',
+		},
+	},
+}));
+
 const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 	const IconMap: Record<MealCategoryType, IconName> = {
-		Breakfast: 'Egg', // Maybe Egg or EggFried?? or coffee
+		Breakfast: 'Coffee', // Maybe Egg or EggFried?? or coffee
 		Lunch: 'Salad', // or cheese?
 		Dinner: 'Soup', // Sausage? Soup? Fish?
 		Snack: 'Cookie', // or ice cream?
 	};
+
+	const { classes } = useStyles();
 
 	const { name, calorieCount, foodItems } = summary;
 
@@ -97,11 +111,11 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 		<Card>
 			<Stack spacing='xs'>
 				<Group position='apart'>
-					<Group sx={{ flex: 2 }}>
+					<Group noWrap>
 						<Icon size={35} />
 						<Stack spacing={0}>
 							<Text fw='bold'>{name}</Text>
-							<Text w={200} truncate size='xs'>
+							<Text className={classes.text} truncate size='xs'>
 								{foodItems.join(', ')}
 							</Text>
 						</Stack>
