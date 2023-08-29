@@ -23,6 +23,7 @@ export interface MealCategorySummary {
 
 export interface DailySummary {
 	calorieLimit: number;
+	caloriesConsumed: number;
 	mealCategorySummaries: MealCategorySummary[];
 }
 
@@ -90,6 +91,15 @@ export const foodEntriesRouter = createTRPCRouter({
 				};
 			});
 
-			return { calorieLimit: calorieLimit ?? 0, mealCategorySummaries: entrySummaries };
+			const caloriesConsumed = entrySummaries.reduce(
+				(accumulator, { calorieCount }) => accumulator + calorieCount,
+				0
+			);
+
+			return {
+				calorieLimit: calorieLimit ?? 0,
+				mealCategorySummaries: entrySummaries,
+				caloriesConsumed,
+			};
 		}),
 });

@@ -56,6 +56,24 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 								},
 							}),
 						},
+						Modal: {
+							styles: theme => ({
+								header: {
+									backgroundColor: theme.colors.base[6],
+								},
+
+								content: {
+									backgroundColor: theme.colors.base[6],
+								},
+							}),
+						},
+						Input: {
+							styles: theme => ({
+								input: {
+									backgroundColor: theme.colors.neutral[6],
+								},
+							}),
+						},
 					},
 				}}
 			>
@@ -70,7 +88,7 @@ export default api.withTRPC(MyApp);
 const Footer = () => {
 	const { data: sessionData } = useSession();
 	const { colors } = useMantineTheme();
-	const { pathname } = useRouter();
+	const { pathname, ...router } = useRouter();
 
 	if (!sessionData?.user) return undefined;
 
@@ -95,7 +113,7 @@ const Footer = () => {
 				justifyContent: 'space-evenly',
 			}}
 		>
-			<NavButton active={pathname === '/'} iconName='Book'>
+			<NavButton onClick={() => router.push('/')} active={pathname === '/'} iconName='Book'>
 				Diary
 			</NavButton>
 			<NavButton
@@ -117,6 +135,7 @@ const NavButton = ({
 	iconName,
 	size,
 	active,
+	onClick,
 	...props
 }: {
 	iconName: keyof typeof Icons;
@@ -126,6 +145,7 @@ const NavButton = ({
 	color?: string;
 	active?: boolean;
 	strokeWidth?: number;
+	onClick?: () => void;
 }) => {
 	const Icon = Icons[iconName];
 	const { colors } = useMantineTheme();
@@ -134,7 +154,7 @@ const NavButton = ({
 	const color = active ? primaryColor : colors.dark[0];
 
 	return (
-		<UnstyledButton sx={{ flex: 1 }}>
+		<UnstyledButton onClick={onClick} sx={{ flex: 1 }}>
 			<Stack align='center' justify='flex-start' spacing={0}>
 				<Icon size={size ?? 40} color={color} {...props} />
 				{children && <Text size='xs'>{children}</Text>}

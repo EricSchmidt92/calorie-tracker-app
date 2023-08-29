@@ -109,4 +109,16 @@ export const themeColors: MantineThemeOverride['colors'] = {
 		'#C12020',
 		'#A82222',
 	],
+	dark: [
+		'#F8F8F2',
+		'#a6a7ab',
+		'#909296',
+		'#5c5f66',
+		'#373a40',
+		'#2c2e33',
+		'#25262b',
+		'#1a1b1e',
+		'#141517',
+		'#101113',
+	],
 };
