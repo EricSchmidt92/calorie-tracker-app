@@ -27,7 +27,7 @@ export interface DailySummary {
 	mealCategorySummaries: MealCategorySummary[];
 }
 
-export const foodEntriesRouter = createTRPCRouter({
+export const foodDiaryRouter = createTRPCRouter({
 	getDailyCalorieSummary: protectedProcedure
 		.input(
 			z.object({
@@ -40,14 +40,25 @@ export const foodEntriesRouter = createTRPCRouter({
 
 			validateISOString(dateTime);
 
-			const dayStart = dateTime.startOf('day').toJSDate();
-			const dayEnd = dateTime.endOf('day').toJSDate();
+			const dayStart = dateTime.startOf('day').toISO();
+			const dayEnd = dateTime.endOf('day').toISO();
+
+			console.log('start and end', dayStart, dayEnd);
+
+			console.log('from db: 2023-08-30T03:20:44.885Z');
+
+			if (!dayStart || !dayEnd) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Invalid date for day passed in',
+				});
+			}
 
 			const entries = await prisma.mealCategory.findMany({
 				include: {
-					foodEntries: {
+					foodDiaryEntries: {
 						include: {
-							foodItemInfo: true,
+							foodItem: true,
 						},
 						where: {
 							userId,
@@ -69,12 +80,12 @@ export const foodEntriesRouter = createTRPCRouter({
 				},
 			});
 
-			type FoodEntry = (typeof entries)[number]['foodEntries'];
+			type FoodEntry = (typeof entries)[number]['foodDiaryEntries'];
 
 			const foodEntryReduce = (foodEntry: FoodEntry) => {
-				return foodEntry.reduce((total, { servingQuantity, foodItemInfo }) => {
-					const caloriesPerServing = foodItemInfo.caloriesPerServing;
-					const servingSize = foodItemInfo.servingSize;
+				return foodEntry.reduce((total, { servingQuantity, foodItem }) => {
+					const caloriesPerServing = foodItem.caloriesPerServing;
+					const servingSize = foodItem.servingSize;
 					const caloriesPerUnitOfMeasurement = caloriesPerServing / servingSize;
 					const totalCalories = Math.round(servingQuantity * caloriesPerUnitOfMeasurement);
 
@@ -82,12 +93,12 @@ export const foodEntriesRouter = createTRPCRouter({
 				}, 0);
 			};
 
-			const entrySummaries = entries.map(({ type, id, foodEntries }) => {
+			const entrySummaries = entries.map(({ type, id, foodDiaryEntries }) => {
 				return {
 					type,
 					id,
-					calorieCount: foodEntryReduce(foodEntries),
-					foodItems: foodEntries.map(entry => entry.foodItemInfo.name),
+					calorieCount: foodEntryReduce(foodDiaryEntries),
+					foodItems: foodDiaryEntries.map(entry => entry.foodItem.name),
 				};
 			});
 

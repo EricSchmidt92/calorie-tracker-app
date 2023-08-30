@@ -72,7 +72,7 @@ async function main() {
 		],
 	});
 
-	await prisma.foodItemInfo.createMany({
+	await prisma.foodItem.createMany({
 		data: [
 			foodItemsMap.spam,
 			foodItemsMap.ramen,
@@ -109,20 +109,18 @@ async function main() {
 		},
 	});
 
-	await prisma.foodEntry.createMany({
+	await prisma.foodDiary.createMany({
 		data: [
 			{
-				foodItemInfoId: foodItemsMap.salsa.id,
+				foodItemId: foodItemsMap.salsa.id,
 				mealCategoryId: lunchId,
 				userId,
-				date: new Date(),
 				servingQuantity: 20,
 			},
 			{
-				foodItemInfoId: foodItemsMap.almondMilk.id,
+				foodItemId: foodItemsMap.almondMilk.id,
 				mealCategoryId: breakfastId,
 				userId,
-				date: new Date(),
 				servingQuantity: 30,
 			},
 		],

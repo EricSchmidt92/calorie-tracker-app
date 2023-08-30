@@ -27,9 +27,9 @@ enum MealCategoryType {
 }
 
 model MealCategory {
-    id          String           @id @default(cuid())
-    type        MealCategoryType
-    foodEntries FoodEntry[]
+    id               String           @id @default(cuid())
+    type             MealCategoryType @unique
+    foodDiaryEntries FoodDiary[]
 }
 
 model Goal {
@@ -40,26 +40,26 @@ model Goal {
     user         User   @relation(fields: [userId], references: [id])
 }
 
-model FoodItemInfo {
+model FoodItem {
     id                 String            @id @default(cuid())
     name               String            @unique
     caloriesPerServing Int
     servingSize        Int
     servingUnit        UnitOfMeasurement @default(g)
-    foodEntries        FoodEntry[]
+    foodDiaryEntries   FoodDiary[]
 
     @@index([name])
 }
 
-model FoodEntry {
+model FoodDiary {
     id              String       @id @default(cuid())
     mealCategoryId  String
-    foodItemInfoId  String
+    foodItemId      String
     userId          String
     servingQuantity Int
-    date            DateTime
+    date            DateTime     @default(now())
     mealCategory    MealCategory @relation(fields: [mealCategoryId], references: [id])
-    foodItemInfo    FoodItemInfo @relation(fields: [foodItemInfoId], references: [id])
+    foodItem        FoodItem     @relation(fields: [foodItemId], references: [id])
     user            User         @relation(fields: [userId], references: [id])
 }
 
@@ -99,8 +99,8 @@ model User {
     accounts      Account[]
     sessions      Session[]
 
-    foodEntries FoodEntry[]
-    goals       Goal[]
+    foodDiaryEntries FoodDiary[]
+    goals            Goal[]
 }
 
 model VerificationToken {

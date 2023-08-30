@@ -1,32 +1,25 @@
-import { MealCategorySummary } from '@/server/api/routers/foodEntries';
+import { MealCategorySummary } from '@/server/api/routers/foodDiary';
 import { api } from '@/utils/api';
 import {
-	useMantineTheme,
-	ScrollArea,
+	ActionIcon,
+	Card,
+	Center,
+	Divider,
 	Group,
 	RingProgress,
-	Center,
+	ScrollArea,
+	Stack,
+	Text,
 	createStyles,
 	em,
-	Card,
-	ActionIcon,
-	Divider,
-	Modal,
-	Input,
-	Button,
-	SegmentedControl,
-	Text,
-	Stack,
-	Box,
+	useMantineTheme,
 } from '@mantine/core';
-import { useDisclosure, useInputState, useDebouncedValue } from '@mantine/hooks';
-import { MealCategoryType, FoodItemInfo } from '@prisma/client';
+import { MealCategoryType } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { NextPage } from 'next';
-import Head from 'next/head';
 
 import { useRouter } from 'next/router';
-import React, { MouseEventHandler } from 'react';
+import { MouseEventHandler } from 'react';
 import * as Icons from 'tabler-icons-react';
 
 type IconName = keyof typeof Icons;
@@ -37,7 +30,7 @@ const DiarySummaryPage: NextPage = () => {
 		data: dailySummary,
 		error,
 		isLoading,
-	} = api.foodEntries.getDailyCalorieSummary.useQuery({
+	} = api.foodDiary.getDailyCalorieSummary.useQuery({
 		day: DateTime.now().toISODate() ?? '',
 	});
 
@@ -59,35 +52,23 @@ const DiarySummaryPage: NextPage = () => {
 	const dayInISODate = dateTime.toISODate(); //TODO:  use this to select new day eventually
 
 	return (
-		<>
-			<Head>
-				<title>Calorie Tracker</title>
-				<meta name='description' content='For helping your diet stay on track' />
-				<link rel='icon' href='/favicon.ico' />
-				<meta
-					name='viewport'
-					content='minimum-scale=1, initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no'
+		<ScrollArea>
+			<Stack maw={breakpoints.xs} justify='center' mx='auto'>
+				<CalorieSummaryHeader
+					caloriesConsumed={dailySummary.caloriesConsumed}
+					caloriesLimit={dailySummary.calorieLimit}
 				/>
-			</Head>
-
-			<ScrollArea>
-				<Stack maw={breakpoints.xs} justify='center' mx='auto'>
-					<CalorieSummaryHeader
-						caloriesConsumed={dailySummary.caloriesConsumed}
-						caloriesLimit={dailySummary.calorieLimit}
-					/>
-					{dateTime.hasSame(DateTime.now(), 'day')}
-					<Text>
-						{isSelectedDayToday && 'Today, '}
-						{dateTime.toFormat('LLL dd')}
-					</Text>{' '}
-					{/* TODO: Change based on some param for the day */}
-					{dailySummary?.mealCategorySummaries?.map(dailySummary => (
-						<MealSummaryCard key={dailySummary.id} summary={dailySummary} />
-					))}
-				</Stack>
-			</ScrollArea>
-		</>
+				{dateTime.hasSame(DateTime.now(), 'day')}
+				<Text>
+					{isSelectedDayToday && 'Today, '}
+					{dateTime.toFormat('LLL dd')}
+				</Text>{' '}
+				{/* TODO: Change based on some param for the day */}
+				{dailySummary?.mealCategorySummaries?.map(dailySummary => (
+					<MealSummaryCard key={dailySummary.id} summary={dailySummary} />
+				))}
+			</Stack>
+		</ScrollArea>
 	);
 };
 
@@ -160,9 +141,6 @@ const useStyles = createStyles(() => ({
 }));
 
 const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
-	const [opened, { open, close }] = useDisclosure(false);
-	const [searchValue, setSearchValue] = useInputState('');
-	const [debounced] = useDebouncedValue(searchValue, 200);
 	const IconMap: Record<MealCategoryType, IconName> = {
 		Breakfast: 'Coffee',
 		Lunch: 'Salad',
@@ -180,13 +158,6 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 	const { colors } = useMantineTheme();
 	const router = useRouter();
 	const date = router.query.date;
-
-	const { data, error } = api.footItems.getFoodItemsByName.useQuery(
-		{ name: debounced },
-		{
-			enabled: debounced.length > 0,
-		}
-	);
 
 	if (!date || Array.isArray(date)) {
 		router.push('/');
@@ -207,13 +178,7 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 
 	const handleAddToMealCategory: MouseEventHandler<SVGElement> = event => {
 		event.stopPropagation();
-		router.push(`/diary/${dateTime.toISODate()}/${summary.type}/`);
-		// open();
-	};
-
-	const handleOnClose = () => {
-		setSearchValue('');
-		close();
+		router.push(`/diary/${dateTime.toISODate()}/${summary.type}/edit`);
 	};
 
 	return (
@@ -250,153 +215,8 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 					)}
 				</Stack>
 			</Card>
-			<Modal.Root
-				opened={opened}
-				onClose={handleOnClose}
-				transitionProps={{ transition: 'slide-up', duration: 200 }}
-				fullScreen
-				styles={() => ({
-					body: {
-						height: '90%',
-					},
-				})}
-			>
-				<Modal.Overlay />
-
-				<Modal.Content>
-					<Modal.Header sx={{ justifyContent: 'space-between' }}>
-						<Stack w='100%' pb='xs'>
-							<Group position='apart'>
-								<Modal.CloseButton ml='0' />
-
-								<Modal.Title>
-									<Text m='0' fw='bold'>
-										{type}
-									</Text>
-								</Modal.Title>
-
-								<ActionIcon size='sm'>
-									<Icons.Dots />
-								</ActionIcon>
-							</Group>
-							<Input
-								radius='xl'
-								variant='filled'
-								icon={<Icons.Search size='1rem' />}
-								value={searchValue}
-								onChange={setSearchValue}
-							/>
-						</Stack>
-					</Modal.Header>
-
-					<Modal.Body h='84%'>
-						<ScrollArea.Autosize mah='100%'>
-							<Box h={20}></Box>
-							{searchValue ? (
-								<Stack>
-									{error && <Text color='error.4'>Error fetching food items</Text>}
-
-									{data && data?.map(item => <FoodItemCard key={item.id} foodItem={item} />)}
-								</Stack>
-							) : (
-								<FoodSummaryMainContent />
-							)}
-							<Box h={70}></Box>
-						</ScrollArea.Autosize>
-
-						<Button pos='absolute' bottom={0} left={0} right={0} onClick={handleOnClose}>
-							Done
-						</Button>
-					</Modal.Body>
-				</Modal.Content>
-			</Modal.Root>
 		</>
 	);
-};
-
-const FoodItemCard = ({ foodItem }: { foodItem: FoodItemInfo }) => {
-	const { name, caloriesPerServing, servingSize, servingUnit } = foodItem;
-	const { colors } = useMantineTheme();
-	const { classes } = useStyles();
-	return (
-		<Card p='sm'>
-			<Group position='apart'>
-				<Stack spacing={0}>
-					<Text className={classes.foodInfoCardText} truncate size='sm'>
-						{name}
-					</Text>
-					<Text size='xs'>{caloriesPerServing} cal</Text>
-					<Text size='xs'>
-						{servingSize}
-						{servingUnit}
-					</Text>
-				</Stack>
-
-				<Icons.CirclePlus
-					onClick={() => console.log('you want to add this to your meal category')}
-					strokeWidth={1}
-					size={50}
-					fill={colors.success[3]}
-					color={colors.neutral[6]}
-				/>
-			</Group>
-		</Card>
-	);
-};
-
-const FoodSummaryMainContent = () => {
-	const [subMenuSelection, setSubMenuSelection] = useInputState('favorites');
-	const { colors } = useMantineTheme();
-
-	return (
-		<Stack>
-			<SegmentedControl
-				radius='xl'
-				size='xs'
-				value={subMenuSelection}
-				onChange={setSubMenuSelection}
-				data={[
-					{
-						value: 'recent',
-						label: (
-							<Center>
-								<Icons.History
-									color={subMenuSelection === 'recent' ? colors.success[3] : undefined}
-								/>
-							</Center>
-						),
-					},
-					{
-						value: 'favorites',
-						label: (
-							<Center>
-								<Icons.Heart
-									color={subMenuSelection === 'favorites' ? colors.success[3] : undefined}
-								/>
-							</Center>
-						),
-					},
-					{
-						value: 'list',
-						label: (
-							<Center>
-								<Icons.List color={subMenuSelection === 'list' ? colors.success[3] : undefined} />
-							</Center>
-						),
-					},
-				]}
-			/>
-			{subMenuSelection === 'recent' && <Text>recent view</Text>}
-			{subMenuSelection === 'favorites' && <Text>favorites view</Text>}
-			{subMenuSelection === 'list' && <DiaryList />}
-		</Stack>
-	);
-};
-
-const DiaryList = () => {
-	const router = useRouter();
-
-	return <Text>Diary List is here and the path is: {router.pathname}</Text>;
 };
 
 export default DiarySummaryPage;

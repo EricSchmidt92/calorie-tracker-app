@@ -20,6 +20,7 @@ import { ReactElement, ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import * as Icons from 'tabler-icons-react';
 import { DateTime } from 'luxon';
+import Head from 'next/head';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
 	getLayout?: (page: ReactElement) => ReactNode;
@@ -33,63 +34,74 @@ type AppPropsWithLayout = AppProps & {
 const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWithLayout) => {
 	const getLayout = Component.getLayout ?? (page => page);
 	return (
-		<SessionProvider session={session}>
-			<MantineProvider
-				withNormalizeCSS
-				withGlobalStyles
-				theme={{
-					colorScheme: 'dark',
-					colors: themeColors,
-					primaryColor: 'primaryPink',
-					primaryShade: 3,
-					globalStyles: theme => ({
-						body: {
+		<>
+			<Head>
+				<title>Calorie Tracker</title>
+				<meta name='description' content='For helping your diet stay on track' />
+				<link rel='icon' href='/favicon.ico' />
+				<meta
+					name='viewport'
+					content='minimum-scale=1, initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no'
+				/>
+			</Head>
+			<SessionProvider session={session}>
+				<MantineProvider
+					withNormalizeCSS
+					withGlobalStyles
+					theme={{
+						colorScheme: 'dark',
+						colors: themeColors,
+						primaryColor: 'primaryPink',
+						primaryShade: 3,
+						globalStyles: theme => ({
+							body: {
+								backgroundColor: theme.colors.base[6],
+							},
 							backgroundColor: theme.colors.base[6],
+						}),
+						components: {
+							Card: {
+								styles: theme => ({
+									root: {
+										backgroundColor: theme.colors.neutral[6],
+										color: '#F8F8F2',
+									},
+								}),
+							},
+							Modal: {
+								styles: theme => ({
+									header: {
+										backgroundColor: theme.colors.neutral[6],
+									},
+									content: {
+										backgroundColor: theme.colors.base[6],
+									},
+								}),
+							},
+							Input: {
+								styles: theme => ({
+									input: {
+										backgroundColor: theme.colors.base[6],
+									},
+								}),
+							},
+							SegmentedControl: {
+								styles: theme => ({
+									root: {
+										backgroundColor: theme.colors.base[4],
+									},
+									controlActive: {
+										backgroundColor: theme.colors.neutral[6],
+									},
+								}),
+							},
 						},
-						backgroundColor: theme.colors.base[6],
-					}),
-					components: {
-						Card: {
-							styles: theme => ({
-								root: {
-									backgroundColor: theme.colors.neutral[6],
-									color: '#F8F8F2',
-								},
-							}),
-						},
-						Modal: {
-							styles: theme => ({
-								header: {
-									backgroundColor: theme.colors.neutral[6],
-								},
-								content: {
-									backgroundColor: theme.colors.base[6],
-								},
-							}),
-						},
-						Input: {
-							styles: theme => ({
-								input: {
-									backgroundColor: theme.colors.base[6],
-								},
-							}),
-						},
-						SegmentedControl: {
-							styles: theme => ({
-								root: {
-									backgroundColor: theme.colors.base[4],
-								},
-								controlActive: {
-									backgroundColor: theme.colors.neutral[6],
-								},
-							}),
-						},
-					},
-				}}
-			>
-				<AppShell footer={<Footer />}>{getLayout(<Component {...pageProps} />)}</AppShell>
-			</MantineProvider>
-		</SessionProvider>
+					}}
+				>
+					<AppShell footer={<Footer />}>{getLayout(<Component {...pageProps} />)}</AppShell>
+				</MantineProvider>
+			</SessionProvider>
+		</>
 	);
 };
 
@@ -101,6 +113,8 @@ const Footer = () => {
 	const { pathname, ...router } = useRouter();
 
 	if (!sessionData?.user) return undefined;
+
+	if (pathname === '/diary/[date]/[mealCategory]/edit') return undefined;
 
 	// const primaryColor = colors.success[4];
 	const primaryColor = colors.primaryPink[3];
