@@ -59,7 +59,7 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 						Modal: {
 							styles: theme => ({
 								header: {
-									backgroundColor: theme.colors.base[6],
+									backgroundColor: theme.colors.neutral[6],
 								},
 
 								content: {
@@ -70,7 +70,7 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 						Input: {
 							styles: theme => ({
 								input: {
-									backgroundColor: theme.colors.neutral[6],
+									backgroundColor: theme.colors.base[6],
 								},
 							}),
 						},

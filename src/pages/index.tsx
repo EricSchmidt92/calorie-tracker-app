@@ -2,6 +2,7 @@ import { MealCategorySummary } from '@/server/api/routers/foodEntries';
 import { api } from '@/utils/api';
 import {
 	ActionIcon,
+	Box,
 	Button,
 	Card,
 	Center,
@@ -11,6 +12,7 @@ import {
 	Modal,
 	RingProgress,
 	ScrollArea,
+	SegmentedControl,
 	Stack,
 	Text,
 	createStyles,
@@ -182,6 +184,8 @@ const useStyles = createStyles(() => ({
 
 const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 	const [opened, { open, close }] = useDisclosure(false);
+	const [searchValue, setSearchValue] = useInputState('');
+	const [debounced] = useDebouncedValue(searchValue, 200);
 	const IconMap: Record<MealCategoryType, IconName> = {
 		Breakfast: 'Coffee',
 		Lunch: 'Salad',
@@ -198,6 +202,18 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 
 	const { colors } = useMantineTheme();
 	const router = useRouter();
+
+	const { data, error } = api.footItems.getFoodItemsByName.useQuery(
+		{ name: debounced },
+		{
+			enabled: debounced.length > 0,
+		}
+	);
+
+	const handleOnClose = () => {
+		setSearchValue('');
+		close();
+	};
 
 	return (
 		<>
@@ -238,7 +254,7 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 			</Card>
 			<Modal.Root
 				opened={opened}
-				onClose={close}
+				onClose={handleOnClose}
 				transitionProps={{ transition: 'slide-up', duration: 200 }}
 				fullScreen
 				styles={() => ({
@@ -247,30 +263,52 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 					},
 				})}
 			>
-				<Modal.Overlay bg='neutral.6' />
+				<Modal.Overlay />
 
 				<Modal.Content>
 					<Modal.Header sx={{ justifyContent: 'space-between' }}>
-						<Modal.CloseButton ml='0' />
+						<Stack w='100%' pb='xs'>
+							<Group position='apart'>
+								<Modal.CloseButton ml='0' />
 
-						<Modal.Title>
-							<Text m='0' fw='bold'>
-								{name}
-							</Text>
-						</Modal.Title>
+								<Modal.Title>
+									<Text m='0' fw='bold'>
+										{name}
+									</Text>
+								</Modal.Title>
 
-						<ActionIcon size='sm'>
-							<Icons.Dots />
-						</ActionIcon>
+								<ActionIcon size='sm'>
+									<Icons.Dots />
+								</ActionIcon>
+							</Group>
+							<Input
+								radius='xl'
+								variant='filled'
+								icon={<Icons.Search size='1rem' />}
+								value={searchValue}
+								onChange={setSearchValue}
+							/>
+						</Stack>
 					</Modal.Header>
 
-					<Modal.Body>
-						<Stack justify='space-between' h='100%'>
-							<FoodItemSearchModal summary={summary} />
-							<Button fullWidth onClick={close}>
-								Done
-							</Button>
-						</Stack>
+					<Modal.Body h='84%'>
+						<ScrollArea.Autosize mah='100%'>
+							<Box h={20}></Box>
+							{searchValue ? (
+								<>
+									{error && <Text color='error.4'>Error fetching food items</Text>}
+
+									{data && data?.map(item => <FoodItemCard key={item.id} foodItem={item} />)}
+								</>
+							) : (
+								<FoodSummaryMainContent summary={summary} />
+							)}
+							<Box h={70}></Box>
+						</ScrollArea.Autosize>
+
+						<Button pos='absolute' bottom={0} left={0} right={0} onClick={handleOnClose}>
+							Done
+						</Button>
 					</Modal.Body>
 				</Modal.Content>
 			</Modal.Root>
@@ -278,35 +316,48 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 	);
 };
 
-const FoodItemSearchModal = ({ summary }: { summary: MealCategorySummary }) => {
-	const [searchValue, setSearchValue] = useInputState('');
-	const [debounced] = useDebouncedValue(searchValue, 200);
-	const [opened, { open, close }] = useDisclosure();
-
-	const { data, error } = api.footItems.getFoodItemsByName.useQuery(
-		{ name: debounced },
-		{
-			enabled: debounced.length > 0,
-		}
-	);
+const FoodSummaryMainContent = ({ summary }: { summary: MealCategorySummary }) => {
+	const [subMenuSelection, setSubMenuSelection] = useInputState('favorites');
+	const { colors } = useMantineTheme();
 
 	return (
 		<Stack>
-			{error && <Text color='error.4'>Error fetching food items</Text>}
-
-			<Input
+			<SegmentedControl
 				radius='xl'
-				variant='filled'
-				icon={<Icons.Search size='1rem' />}
-				value={searchValue}
-				onChange={setSearchValue}
+				size='xs'
+				value={subMenuSelection}
+				onChange={setSubMenuSelection}
+				data={[
+					{
+						value: 'recent',
+						label: (
+							<Center>
+								<Icons.History
+									color={subMenuSelection === 'recent' ? colors.success[3] : undefined}
+								/>
+							</Center>
+						),
+					},
+					{
+						value: 'favorites',
+						label: (
+							<Center>
+								<Icons.Heart
+									color={subMenuSelection === 'favorites' ? colors.success[3] : undefined}
+								/>
+							</Center>
+						),
+					},
+					{
+						value: 'list',
+						label: (
+							<Center>
+								<Icons.List color={subMenuSelection === 'list' ? colors.success[3] : undefined} />
+							</Center>
+						),
+					},
+				]}
 			/>
-			<Text>sub header here</Text>
-
-			<>
-				{data && data?.map(item => <FoodItemCard key={item.id} foodItem={item} />)}
-				{!data && 'No data searched for yet'}
-			</>
 		</Stack>
 	);
 };
