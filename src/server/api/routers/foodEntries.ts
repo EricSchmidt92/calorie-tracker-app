@@ -15,7 +15,7 @@ const validateISOString = (dateTime: DateTime) => {
 };
 
 export interface MealCategorySummary {
-	name: $Enums.MealCategoryType;
+	type: $Enums.MealCategoryType;
 	id: string;
 	calorieCount: number;
 	foodItems: string[];
@@ -82,9 +82,9 @@ export const foodEntriesRouter = createTRPCRouter({
 				}, 0);
 			};
 
-			const entrySummaries = entries.map(({ name, id, foodEntries }) => {
+			const entrySummaries = entries.map(({ type, id, foodEntries }) => {
 				return {
-					name,
+					type,
 					id,
 					calorieCount: foodEntryReduce(foodEntries),
 					foodItems: foodEntries.map(entry => entry.foodItemInfo.name),

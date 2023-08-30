@@ -19,6 +19,7 @@ import { ReactElement, ReactNode } from 'react';
 
 import { useRouter } from 'next/router';
 import * as Icons from 'tabler-icons-react';
+import { DateTime } from 'luxon';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
 	getLayout?: (page: ReactElement) => ReactNode;
@@ -61,7 +62,6 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 								header: {
 									backgroundColor: theme.colors.neutral[6],
 								},
-
 								content: {
 									backgroundColor: theme.colors.base[6],
 								},
@@ -71,6 +71,16 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 							styles: theme => ({
 								input: {
 									backgroundColor: theme.colors.base[6],
+								},
+							}),
+						},
+						SegmentedControl: {
+							styles: theme => ({
+								root: {
+									backgroundColor: theme.colors.base[4],
+								},
+								controlActive: {
+									backgroundColor: theme.colors.neutral[6],
 								},
 							}),
 						},
@@ -113,7 +123,11 @@ const Footer = () => {
 				justifyContent: 'space-evenly',
 			}}
 		>
-			<NavButton onClick={() => router.push('/')} active={pathname === '/'} iconName='Book'>
+			<NavButton
+				onClick={() => router.push(`/diary/${DateTime.now().toISODate()}`)}
+				active={pathname.startsWith('/diary')}
+				iconName='Book'
+			>
 				Diary
 			</NavButton>
 			<NavButton
@@ -123,7 +137,11 @@ const Footer = () => {
 				fill={primaryColor}
 				strokeWidth={1}
 			/>
-			<NavButton active={pathname === '/progress'} iconName='ChartLine'>
+			<NavButton
+				onClick={() => router.push('/progress')}
+				active={pathname === '/progress'}
+				iconName='ChartLine'
+			>
 				Progress
 			</NavButton>
 		</Group>
