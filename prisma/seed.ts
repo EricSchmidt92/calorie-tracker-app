@@ -54,19 +54,19 @@ async function main() {
 	await prisma.mealCategory.createMany({
 		data: [
 			{
-				name: 'Breakfast',
+				type: 'Breakfast',
 				id: breakfastId,
 			},
 			{
-				name: 'Lunch',
+				type: 'Lunch',
 				id: lunchId,
 			},
 			{
-				name: 'Dinner',
+				type: 'Dinner',
 				id: dinnerId,
 			},
 			{
-				name: 'Snack',
+				type: 'Snack',
 				id: snackId,
 			},
 		],
@@ -82,15 +82,30 @@ async function main() {
 		],
 	});
 
-	await prisma.goal.create({
-		data: {
+	const user = await prisma.user.findFirstOrThrow({
+		where: {
+			email: {
+				equals: process.env.USER_EMAIL,
+			},
+		},
+		include: {
+			goals: true,
+		},
+	});
+
+	await prisma.goal.upsert({
+		create: {
 			calorieLimit: 1900,
 			goalWeight: 160,
-			user: {
-				connect: {
-					email: process.env.USER_EMAIL,
-				},
-			},
+			userId: user.id,
+		},
+		update: {
+			calorieLimit: 1900,
+			goalWeight: 160,
+		},
+
+		where: {
+			id: user.goals[0]?.id,
 		},
 	});
 

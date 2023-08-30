@@ -33,13 +33,32 @@ declare module 'next-auth' {
  */
 export const authOptions: NextAuthOptions = {
 	callbacks: {
-		session: ({ session, user }) => ({
-			...session,
-			user: {
-				...session.user,
-				id: user.id,
-			},
-		}),
+		session: async ({ session, user }) => {
+			const data = await prisma.goal.findUnique({
+				where: {
+					id: user.id,
+				},
+			});
+
+			if (!data) {
+				await prisma.goal.update({
+					data: {
+						calorieLimit: 0,
+					},
+					where: {
+						userId: user.id,
+					},
+				});
+			}
+
+			return {
+				...session,
+				user: {
+					...session.user,
+					id: user.id,
+				},
+			};
+		},
 	},
 	adapter: PrismaAdapter(prisma),
 	providers: [

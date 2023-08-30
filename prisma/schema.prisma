@@ -28,13 +28,13 @@ enum MealCategoryType {
 
 model MealCategory {
     id          String           @id @default(cuid())
-    name        MealCategoryType
+    type        MealCategoryType
     foodEntries FoodEntry[]
 }
 
 model Goal {
     id           String @id @default(cuid())
-    userId       String
+    userId       String @unique
     goalWeight   Float?
     calorieLimit Int    @default(0)
     user         User   @relation(fields: [userId], references: [id])
