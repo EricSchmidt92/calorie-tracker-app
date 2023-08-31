@@ -78,6 +78,7 @@ interface CalorieSummaryHeaderProps {
 }
 
 const CalorieSummaryHeader = ({ caloriesConsumed, caloriesLimit }: CalorieSummaryHeaderProps) => {
+	const calorieLimitPercentage = Math.round((caloriesConsumed / caloriesLimit) * 100);
 	return (
 		<Group position='center' spacing={0}>
 			<HeaderSubText calories={caloriesConsumed} text='eaten' />
@@ -94,7 +95,7 @@ const CalorieSummaryHeader = ({ caloriesConsumed, caloriesLimit }: CalorieSummar
 						</Stack>
 					</Center>
 				}
-				sections={[{ value: caloriesLimit / caloriesConsumed, color: 'primaryPink.3' }]}
+				sections={[{ value: calorieLimitPercentage, color: 'primaryPink.3' }]}
 				size={200}
 				thickness={8}
 				rootColor='neutral.4'

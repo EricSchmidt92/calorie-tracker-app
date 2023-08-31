@@ -21,13 +21,27 @@ import { FoodItem, MealCategoryType } from '@prisma/client';
 import { NextPage } from 'next';
 
 import { useRouter } from 'next/router';
-import { AlertCircle, CirclePlus, Dots, Heart, History, List, Search } from 'tabler-icons-react';
+import { ReactNode } from 'react';
+import {
+	AlertCircle,
+	CirclePlus,
+	CircleX,
+	Dots,
+	Heart,
+	History,
+	List,
+	Scale,
+	Search,
+} from 'tabler-icons-react';
 
 const EditDiaryPage: NextPage = () => {
 	const router = useRouter();
 	const type = router.query.mealCategory as string;
 	const [searchValue, setSearchValue] = useInputState('');
 	const [debounced] = useDebouncedValue(searchValue, 200);
+	const { colors } = useMantineTheme();
+	const day = router.query.date as string;
+	const mealCategory = router.query.mealCategory as MealCategoryType;
 
 	const { data, error } = api.foodItem.getFoodItemsByName.useQuery(
 		{ name: debounced },
@@ -36,8 +50,28 @@ const EditDiaryPage: NextPage = () => {
 		}
 	);
 
+	const { mutateAsync } = api.foodDiary.addEntry.useMutation();
+
+	const handleAddDiaryEntry = async (
+		item: FoodItem,
+		servingQuantity: number = item.servingSize
+	) => {
+		await mutateAsync(
+			{ day, category: mealCategory, foodItemId: item.id, servingQuantity },
+			{
+				onError: error => {
+					console.error('error adding foodDiary entry: ', error);
+				},
+				onSuccess: input => {
+					console.log('successfully added with input: ', input);
+					setSearchValue('');
+				},
+			}
+		);
+	};
+
 	return (
-		<Stack h='100%' id='STACK-ID-HELP'>
+		<Stack h='100%'>
 			<Box
 				bg='neutral.6'
 				p='sm'
@@ -67,6 +101,16 @@ const EditDiaryPage: NextPage = () => {
 					radius='xl'
 					variant='filled'
 					icon={<Search size='1rem' />}
+					rightSection={
+						searchValue ? (
+							<CircleX
+								strokeWidth={1}
+								fill={colors.neutral[6]}
+								color={colors.base[6]}
+								onClick={() => setSearchValue('')}
+							/>
+						) : undefined
+					}
 					value={searchValue}
 					onChange={setSearchValue}
 				/>
@@ -77,7 +121,22 @@ const EditDiaryPage: NextPage = () => {
 					<Stack>
 						{error && <Text color='error.4'>Error fetching food items</Text>}
 
-						{data && data?.map(item => <FoodItemCard key={item.id} foodItem={item} />)}
+						{data &&
+							data?.map(item => (
+								<FoodItemCard
+									key={item.id}
+									foodItem={item}
+									icon={
+										<CirclePlus
+											onClick={() => handleAddDiaryEntry(item)}
+											strokeWidth={1}
+											size={50}
+											fill={colors.success[3]}
+											color={colors.neutral[6]}
+										/>
+									}
+								/>
+							))}
 					</Stack>
 				) : (
 					<FoodSummaryMainContent />
@@ -108,9 +167,13 @@ const useStyles = createStyles(() => ({
 	},
 }));
 
-const FoodItemCard = ({ foodItem }: { foodItem: FoodItem }) => {
+interface FoodItemCardProps {
+	foodItem: FoodItem;
+	icon: ReactNode;
+}
+
+const FoodItemCard = ({ foodItem, icon }: FoodItemCardProps) => {
 	const { name, caloriesPerServing, servingSize, servingUnit } = foodItem;
-	const { colors } = useMantineTheme();
 	const { classes } = useStyles();
 	return (
 		<Card p='sm'>
@@ -120,19 +183,16 @@ const FoodItemCard = ({ foodItem }: { foodItem: FoodItem }) => {
 						{name}
 					</Text>
 					<Text size='xs'>{caloriesPerServing} cal</Text>
-					<Text size='xs'>
-						{servingSize}
-						{servingUnit}
-					</Text>
+					<Group spacing={2}>
+						<Scale size='0.9rem' />
+						<Text size='xs'>
+							{servingSize}
+							{servingUnit}
+						</Text>
+					</Group>
 				</Stack>
 
-				<CirclePlus
-					onClick={() => console.log('you want to add this to your meal category')}
-					strokeWidth={1}
-					size={50}
-					fill={colors.success[3]}
-					color={colors.neutral[6]}
-				/>
+				{icon}
 			</Group>
 		</Card>
 	);
@@ -187,11 +247,15 @@ const DiaryList = () => {
 	const router = useRouter();
 	const category = router.query.mealCategory as MealCategoryType;
 	const day = router.query.date as string;
+	const { colors } = useMantineTheme();
+	const utils = api.useContext();
 
 	const { data, error, isLoading } = api.foodDiary.getEntriesByDayAndCategory.useQuery({
 		day,
 		category,
 	});
+
+	const { mutateAsync: deleteDiaryEntryMutation } = api.foodDiary.removeEntry.useMutation();
 
 	if (isLoading) {
 		return <Text>Loading....</Text>;
@@ -205,17 +269,36 @@ const DiaryList = () => {
 		);
 	}
 
+	const handleDeleteDiaryEntry = async (id: string) => {
+		await deleteDiaryEntryMutation(
+			{ id },
+			{
+				onError: error => console.error('Error deleting entry: ', error),
+				onSuccess: () => {
+					utils.foodDiary.getEntriesByDayAndCategory.invalidate({ day, category });
+				},
+			}
+		);
+	};
+
 	return (
 		<Stack>
 			<Text>Diary List is here and the path is: {router.pathname}</Text>
 
-			{data.map(({ id, servingQuantity, foodItem }) => (
-				<Card key={id}>
-					<Text>
-						{foodItem.name} -- {servingQuantity}
-						{foodItem.servingUnit}
-					</Text>
-				</Card>
+			{data.map(({ id, foodItem }) => (
+				<FoodItemCard
+					foodItem={foodItem}
+					key={id}
+					icon={
+						<CircleX
+							onClick={() => handleDeleteDiaryEntry(id)}
+							strokeWidth={1}
+							size={50}
+							fill={colors.error[4]}
+							color={colors.neutral[6]}
+						/>
+					}
+				/>
 			))}
 		</Stack>
 	);

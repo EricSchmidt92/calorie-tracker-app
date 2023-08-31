@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { $Enums, FoodDiary, MealCategoryType } from '@prisma/client';
+import { $Enums, MealCategoryType } from '@prisma/client';
 
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
@@ -13,6 +13,20 @@ const validateISOString = (dateTime: DateTime) => {
 		});
 	}
 };
+
+const mealCategoryEnum = z.enum<MealCategoryType, [MealCategoryType, ...MealCategoryType[]]>([
+	'Breakfast',
+	'Lunch',
+	'Dinner',
+	'Snack',
+]);
+
+const GetDiaryEntrySchema = z.object({
+	category: mealCategoryEnum,
+	day: z.string().nonempty(),
+});
+
+type TDiaryEntrySchema = z.TypeOf<typeof GetDiaryEntrySchema>;
 
 export interface MealCategorySummary {
 	type: $Enums.MealCategoryType;
@@ -111,17 +125,7 @@ export const foodDiaryRouter = createTRPCRouter({
 		}),
 
 	getEntriesByDayAndCategory: protectedProcedure
-		.input(
-			z.object({
-				category: z.enum<MealCategoryType, [MealCategoryType, ...MealCategoryType[]]>([
-					'Breakfast',
-					'Lunch',
-					'Dinner',
-					'Snack',
-				]),
-				day: z.string().nonempty(),
-			})
-		)
+		.input(GetDiaryEntrySchema)
 		.query(async ({ ctx: { prisma, session }, input: { day, category } }) => {
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
@@ -153,5 +157,86 @@ export const foodDiaryRouter = createTRPCRouter({
 					},
 				},
 			});
+		}),
+
+	addEntry: protectedProcedure
+		.input(
+			z.object({
+				foodItemId: z.string().nonempty(),
+				day: z.string(),
+				category: mealCategoryEnum,
+				servingQuantity: z.number().nonnegative(),
+			})
+		)
+		.mutation(async ({ input, ctx: { prisma, session } }) => {
+			const { day, category, foodItemId, servingQuantity } = input;
+
+			//TODO: export this block to common function?
+			const dateTime = DateTime.fromISO(day);
+			const userId = session.user.id;
+
+			validateISOString(dateTime);
+
+			const dayStart = dateTime.startOf('day').toISO();
+			const dayEnd = dateTime.endOf('day').toISO();
+
+			if (!dayStart || !dayEnd) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Invalid date for day passed in',
+				});
+			}
+
+			//* end TODO
+
+			return prisma.foodDiary.create({
+				data: {
+					foodItem: {
+						connect: {
+							id: foodItemId,
+						},
+					},
+					user: {
+						connect: {
+							id: userId,
+						},
+					},
+					servingQuantity,
+					date: dateTime.toString(),
+					mealCategory: {
+						connect: {
+							type: category,
+						},
+					},
+				},
+			});
+		}),
+
+	removeEntry: protectedProcedure
+		.input(z.object({ id: z.string().nonempty() }))
+		.mutation(async ({ input: { id }, ctx: { prisma, session } }) => {
+			const { userId } = await prisma.foodDiary.findUniqueOrThrow({
+				select: {
+					userId: true,
+				},
+				where: {
+					id,
+				},
+			});
+
+			if (userId !== session.user.id) {
+				throw new TRPCError({
+					code: 'UNAUTHORIZED',
+					message: 'User does not own food diary entry',
+				});
+			}
+
+			const item = await prisma.foodDiary.delete({
+				where: {
+					id,
+				},
+			});
+
+			return { success: !!item };
 		}),
 });
