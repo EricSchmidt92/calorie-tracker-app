@@ -1,6 +1,7 @@
 import { api } from '@/utils/api';
 import {
 	ActionIcon,
+	Alert,
 	Box,
 	Button,
 	Card,
@@ -16,11 +17,11 @@ import {
 	useMantineTheme,
 } from '@mantine/core';
 import { useDebouncedValue, useInputState } from '@mantine/hooks';
-import { FoodItem } from '@prisma/client';
+import { FoodItem, MealCategoryType } from '@prisma/client';
 import { NextPage } from 'next';
 
 import { useRouter } from 'next/router';
-import { CirclePlus, Dots, Heart, History, List, Search } from 'tabler-icons-react';
+import { AlertCircle, CirclePlus, Dots, Heart, History, List, Search } from 'tabler-icons-react';
 
 const EditDiaryPage: NextPage = () => {
 	const router = useRouter();
@@ -36,11 +37,18 @@ const EditDiaryPage: NextPage = () => {
 	);
 
 	return (
-		<Stack>
+		<Stack h='100%' id='STACK-ID-HELP'>
 			<Box
 				bg='neutral.6'
-				sx={{ marginLeft: `-1em`, marginRight: '-1em', marginTop: '-1em' }}
 				p='sm'
+				pos='sticky'
+				top={0}
+				sx={{
+					marginLeft: `-1em`,
+					marginRight: '-1em',
+					marginTop: '-1em',
+					zIndex: 2,
+				}}
 			>
 				<Group position='apart'>
 					<Button variant='subtle' color='dark.0' onClick={router.back}>
@@ -63,7 +71,7 @@ const EditDiaryPage: NextPage = () => {
 					onChange={setSearchValue}
 				/>
 			</Box>
-			<ScrollArea.Autosize mah='100%'>
+			<ScrollArea.Autosize mah='100%' sx={{ flex: 2 }}>
 				<Box h={20}></Box>
 				{searchValue ? (
 					<Stack>
@@ -77,9 +85,11 @@ const EditDiaryPage: NextPage = () => {
 				<Box h={70}></Box>
 			</ScrollArea.Autosize>
 
-			<Button pos='absolute' bottom={0} left={0} right={0} onClick={router.back}>
-				Done
-			</Button>
+			<Box pos='sticky' bottom={0} left={20} right={20} bg='base.6' h={100}>
+				<Button fullWidth onClick={router.back} h={50} tt='uppercase'>
+					Done
+				</Button>
+			</Box>
 		</Stack>
 	);
 };
@@ -175,6 +185,38 @@ const FoodSummaryMainContent = () => {
 
 const DiaryList = () => {
 	const router = useRouter();
+	const category = router.query.mealCategory as MealCategoryType;
+	const day = router.query.date as string;
 
-	return <Text>Diary List is here and the path is: {router.pathname}</Text>;
+	const { data, error, isLoading } = api.foodDiary.getEntriesByDayAndCategory.useQuery({
+		day,
+		category,
+	});
+
+	if (isLoading) {
+		return <Text>Loading....</Text>;
+	}
+
+	if (error) {
+		return (
+			<Alert icon={<AlertCircle />} title='Uh oh!' color='error.4'>
+				Something went wrong loading your food diary entries. Please try again!
+			</Alert>
+		);
+	}
+
+	return (
+		<Stack>
+			<Text>Diary List is here and the path is: {router.pathname}</Text>
+
+			{data.map(({ id, servingQuantity, foodItem }) => (
+				<Card key={id}>
+					<Text>
+						{foodItem.name} -- {servingQuantity}
+						{foodItem.servingUnit}
+					</Text>
+				</Card>
+			))}
+		</Stack>
+	);
 };

@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { $Enums } from '@prisma/client';
+import { $Enums, FoodDiary, MealCategoryType } from '@prisma/client';
 
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
@@ -42,10 +42,6 @@ export const foodDiaryRouter = createTRPCRouter({
 
 			const dayStart = dateTime.startOf('day').toISO();
 			const dayEnd = dateTime.endOf('day').toISO();
-
-			console.log('start and end', dayStart, dayEnd);
-
-			console.log('from db: 2023-08-30T03:20:44.885Z');
 
 			if (!dayStart || !dayEnd) {
 				throw new TRPCError({
@@ -112,5 +108,50 @@ export const foodDiaryRouter = createTRPCRouter({
 				mealCategorySummaries: entrySummaries,
 				caloriesConsumed,
 			};
+		}),
+
+	getEntriesByDayAndCategory: protectedProcedure
+		.input(
+			z.object({
+				category: z.enum<MealCategoryType, [MealCategoryType, ...MealCategoryType[]]>([
+					'Breakfast',
+					'Lunch',
+					'Dinner',
+					'Snack',
+				]),
+				day: z.string().nonempty(),
+			})
+		)
+		.query(async ({ ctx: { prisma, session }, input: { day, category } }) => {
+			const dateTime = DateTime.fromISO(day);
+			const userId = session.user.id;
+
+			validateISOString(dateTime);
+
+			const dayStart = dateTime.startOf('day').toISO();
+			const dayEnd = dateTime.endOf('day').toISO();
+
+			if (!dayStart || !dayEnd) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Invalid date for day passed in',
+				});
+			}
+
+			return prisma.foodDiary.findMany({
+				include: {
+					foodItem: true,
+				},
+				where: {
+					userId,
+					date: {
+						gte: dayStart,
+						lte: dayEnd,
+					},
+					mealCategory: {
+						type: category,
+					},
+				},
+			});
 		}),
 });
