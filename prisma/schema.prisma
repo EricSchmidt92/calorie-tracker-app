@@ -41,26 +41,26 @@ model Goal {
 }
 
 model FoodItem {
-    id                 String            @id @default(cuid())
-    name               String            @unique
-    caloriesPerServing Int
-    servingSize        Int
-    servingUnit        UnitOfMeasurement @default(g)
-    foodDiaryEntries   FoodDiary[]
+    id                  String            @id @default(cuid())
+    name                String            @unique
+    caloriesPerServing  Int
+    standardServingSize Int
+    servingUnit         UnitOfMeasurement @default(g)
+    foodDiaryEntries    FoodDiary[]
 
     @@index([name])
 }
 
 model FoodDiary {
-    id              String       @id @default(cuid())
-    mealCategoryId  String
-    foodItemId      String
-    userId          String
-    servingQuantity Int
-    date            DateTime     @default(now())
-    mealCategory    MealCategory @relation(fields: [mealCategoryId], references: [id])
-    foodItem        FoodItem     @relation(fields: [foodItemId], references: [id])
-    user            User         @relation(fields: [userId], references: [id])
+    id               String       @id @default(cuid())
+    mealCategoryId   String
+    foodItemId       String
+    userId           String
+    eatenServingSize Int
+    date             DateTime     @default(now())
+    mealCategory     MealCategory @relation(fields: [mealCategoryId], references: [id])
+    foodItem         FoodItem     @relation(fields: [foodItemId], references: [id])
+    user             User         @relation(fields: [userId], references: [id])
 }
 
 // Necessary for Next auth

@@ -1,4 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { calculateTotalCalories } from '@/utils/caloriesHelper';
 import { $Enums, MealCategoryType } from '@prisma/client';
 
 import { TRPCError } from '@trpc/server';
@@ -93,11 +94,13 @@ export const foodDiaryRouter = createTRPCRouter({
 			type FoodEntry = (typeof entries)[number]['foodDiaryEntries'];
 
 			const foodEntryReduce = (foodEntry: FoodEntry) => {
-				return foodEntry.reduce((total, { servingQuantity, foodItem }) => {
-					const caloriesPerServing = foodItem.caloriesPerServing;
-					const servingSize = foodItem.servingSize;
-					const caloriesPerUnitOfMeasurement = caloriesPerServing / servingSize;
-					const totalCalories = Math.round(servingQuantity * caloriesPerUnitOfMeasurement);
+				return foodEntry.reduce((total, { eatenServingSize, foodItem }) => {
+					const { caloriesPerServing, standardServingSize } = foodItem;
+					const totalCalories = calculateTotalCalories({
+						standardServingSize,
+						caloriesPerServing,
+						eatenServingSize,
+					});
 
 					return total + totalCalories;
 				}, 0);
@@ -165,11 +168,11 @@ export const foodDiaryRouter = createTRPCRouter({
 				foodItemId: z.string().nonempty(),
 				day: z.string(),
 				category: mealCategoryEnum,
-				servingQuantity: z.number().nonnegative(),
+				eatenServingSize: z.number().nonnegative(),
 			})
 		)
 		.mutation(async ({ input, ctx: { prisma, session } }) => {
-			const { day, category, foodItemId, servingQuantity } = input;
+			const { day, category, foodItemId, eatenServingSize } = input;
 
 			//TODO: export this block to common function?
 			const dateTime = DateTime.fromISO(day);
@@ -201,7 +204,7 @@ export const foodDiaryRouter = createTRPCRouter({
 							id: userId,
 						},
 					},
-					servingQuantity,
+					eatenServingSize,
 					date: dateTime.toString(),
 					mealCategory: {
 						connect: {
@@ -238,5 +241,37 @@ export const foodDiaryRouter = createTRPCRouter({
 			});
 
 			return { success: !!item };
+		}),
+
+	getDiaryEntryCount: protectedProcedure
+		.input(GetDiaryEntrySchema)
+		.query(async ({ input: { day, category }, ctx: { session, prisma } }) => {
+			const dateTime = DateTime.fromISO(day);
+			const userId = session.user.id;
+
+			validateISOString(dateTime);
+
+			const dayStart = dateTime.startOf('day').toISO();
+			const dayEnd = dateTime.endOf('day').toISO();
+
+			if (!dayStart || !dayEnd) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Invalid date for day passed in',
+				});
+			}
+
+			return prisma.foodDiary.count({
+				where: {
+					userId,
+					mealCategory: {
+						type: category,
+					},
+					date: {
+						gte: dayStart,
+						lte: dayEnd,
+					},
+				},
+			});
 		}),
 });

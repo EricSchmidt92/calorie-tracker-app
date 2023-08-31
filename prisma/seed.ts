@@ -19,32 +19,32 @@ async function main() {
 	const foodItemsMap = {
 		spam: {
 			name: 'Spam Lite',
-			servingSize: 56,
+			standardServingSize: 56,
 			caloriesPerServing: 110,
 			id: createId(),
 		},
 		ramen: {
 			name: 'Balduk Quattro Cheese Stir Fried Ramen Noodles',
-			servingSize: 145,
+			standardServingSize: 145,
 			caloriesPerServing: 590,
 			id: createId(),
 		},
 		salsa: {
 			name: 'La Preferida Salsa Taquera Hot',
-			servingSize: 30,
+			standardServingSize: 30,
 			caloriesPerServing: 10,
 			id: createId(),
 		},
 		almondMilk: {
 			name: 'Almond Milk',
-			servingSize: 240,
+			standardServingSize: 240,
 			caloriesPerServing: 30,
 			servingUnit: 'mL',
 			id: createId(),
 		},
 		proteinShake: {
 			name: 'Fairlife Core Power Chocolate Protein Shake',
-			servingSize: 414,
+			standardServingSize: 414,
 			caloriesPerServing: 170,
 			servingUnit: 'mL',
 			id: createId(),
@@ -115,13 +115,13 @@ async function main() {
 				foodItemId: foodItemsMap.salsa.id,
 				mealCategoryId: lunchId,
 				userId,
-				servingQuantity: 20,
+				eatenServingSize: 20,
 			},
 			{
 				foodItemId: foodItemsMap.almondMilk.id,
 				mealCategoryId: breakfastId,
 				userId,
-				servingQuantity: 30,
+				eatenServingSize: 30,
 			},
 		],
 	});

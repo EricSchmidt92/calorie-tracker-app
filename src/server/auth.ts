@@ -41,10 +41,13 @@ export const authOptions: NextAuthOptions = {
 			});
 
 			if (!data) {
-				await prisma.goal.update({
-					data: {
+				console.log('data: ', data);
+				await prisma.goal.upsert({
+					create: {
 						calorieLimit: 0,
+						userId: user.id,
 					},
+					update: {},
 					where: {
 						userId: user.id,
 					},
