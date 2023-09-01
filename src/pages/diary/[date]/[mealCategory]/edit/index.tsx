@@ -84,6 +84,12 @@ const EditDiaryPage: NextPage = () => {
 		);
 	};
 
+	const handleModalClose = () => {
+		setSelectedItem(undefined);
+		setSearchValue('');
+		close();
+	};
+
 	return (
 		<Stack h='100%'>
 			<Box
@@ -159,15 +165,14 @@ const EditDiaryPage: NextPage = () => {
 								/>
 							))}
 
-						<FoodDiaryEntryModal
-							opened={opened}
-							onClose={close}
-							foodItem={selectedItem}
-							handleSubmission={item => {
-								console.log('you want to submit a new food diary entry with item of: ', item);
-								close();
-							}}
-						/>
+						{selectedItem && (
+							<FoodDiaryEntryModal
+								opened={opened}
+								onClose={handleModalClose}
+								foodItem={selectedItem}
+								submissionType='create'
+							/>
+						)}
 					</Stack>
 				) : (
 					<FoodSummaryMainContent day={day} category={category} />
@@ -202,12 +207,17 @@ interface FoodItemCardProps {
 	foodItem: FoodItem;
 	icon: ReactNode;
 	onClick?: MouseEventHandler<HTMLDivElement>;
+	eatenServingSize?: number;
 }
 
-const FoodItemCard = ({ foodItem, icon, onClick }: FoodItemCardProps) => {
+const FoodItemCard = ({ foodItem, icon, eatenServingSize, onClick }: FoodItemCardProps) => {
 	const { name, caloriesPerServing, standardServingSize, servingUnit } = foodItem;
 	const { classes } = useStyles();
 
+	const serving = eatenServingSize ? eatenServingSize : standardServingSize;
+	const calories = eatenServingSize
+		? calculateTotalCalories({ caloriesPerServing, eatenServingSize, standardServingSize })
+		: caloriesPerServing;
 	return (
 		<>
 			<Card p='sm' onClick={onClick}>
@@ -216,11 +226,11 @@ const FoodItemCard = ({ foodItem, icon, onClick }: FoodItemCardProps) => {
 						<Text className={classes.foodInfoCardText} truncate size='sm'>
 							{name}
 						</Text>
-						<Text size='xs'>{caloriesPerServing} cal</Text>
+						<Text size='xs'>{calories} cal</Text>
 						<Group spacing={2}>
 							<Scale size='0.9rem' />
 							<Text size='xs'>
-								{standardServingSize}
+								{serving}
 								{servingUnit}
 							</Text>
 						</Group>
@@ -296,6 +306,12 @@ const FoodSummaryMainContent = ({ day, category }: { day: string; category: Meal
 	);
 };
 
+interface DiaryEntryProps {
+	foodItem: FoodItem;
+	eatenServingSize: number;
+	diaryId: string;
+}
+
 const DiaryList = () => {
 	const router = useRouter();
 	const category = router.query.mealCategory as MealCategoryType;
@@ -303,17 +319,21 @@ const DiaryList = () => {
 	const { colors } = useMantineTheme();
 	const utils = api.useContext();
 	const [opened, { open, close }] = useDisclosure();
-	const [selectedItem, setSelectedItem] = useState<FoodItem | undefined>(undefined);
+	const [selectedItem, setSelectedItem] = useState<DiaryEntryProps | undefined>(undefined);
 
-	const { data, error, isLoading } = api.foodDiary.getEntriesByDayAndCategory.useQuery({
+	const {
+		data: diaryEntries,
+		error,
+		isLoading,
+	} = api.foodDiary.getEntriesByDayAndCategory.useQuery({
 		day,
 		category,
 	});
 
 	const { mutateAsync: deleteDiaryEntryMutation } = api.foodDiary.removeEntry.useMutation();
 
-	const handleCardClick = (item: FoodItem) => {
-		setSelectedItem(item);
+	const handleCardClick = ({ foodItem, eatenServingSize, diaryId }: DiaryEntryProps) => {
+		setSelectedItem({ foodItem, eatenServingSize, diaryId });
 		open();
 	};
 
@@ -342,14 +362,20 @@ const DiaryList = () => {
 		);
 	};
 
+	const handleModalClose = () => {
+		setSelectedItem(undefined);
+		close();
+	};
+
 	return (
 		<Stack>
 			<Text>Diary List is here and the path is: {router.pathname}</Text>
 
-			{data.map(({ id, foodItem }) => (
+			{diaryEntries.map(({ id, foodItem, eatenServingSize }) => (
 				<Fragment key={id}>
 					<FoodItemCard
 						foodItem={foodItem}
+						eatenServingSize={eatenServingSize}
 						icon={
 							<CircleX
 								onClick={e => {
@@ -362,19 +388,20 @@ const DiaryList = () => {
 								color={colors.neutral[6]}
 							/>
 						}
-						onClick={() => handleCardClick(foodItem)}
+						onClick={() => handleCardClick({ foodItem, eatenServingSize, diaryId: id })}
 					/>
 				</Fragment>
 			))}
-			<FoodDiaryEntryModal
-				opened={opened}
-				onClose={close}
-				foodItem={selectedItem}
-				handleSubmission={item => {
-					console.log('EDIT FOOD ITEM modal submission done with item of: ', item);
-					close();
-				}}
-			/>
+			{selectedItem && (
+				<FoodDiaryEntryModal
+					opened={opened}
+					onClose={handleModalClose}
+					foodItem={selectedItem.foodItem}
+					initialServingSizeVal={selectedItem.eatenServingSize}
+					diaryId={selectedItem.diaryId}
+					submissionType='edit'
+				/>
+			)}
 		</Stack>
 	);
 };
@@ -382,22 +409,37 @@ const DiaryList = () => {
 interface FoodDiaryEntryModalProps {
 	opened: boolean;
 	onClose: () => void;
-	foodItem?: FoodItem;
-	handleSubmission: (value: { foodItem: FoodItem; eatenServingSize: number }) => void;
+	foodItem: FoodItem;
+	initialServingSizeVal?: number;
+	submissionType: 'edit' | 'create';
+	diaryId?: string;
 }
 
 const FoodDiaryEntryModal = ({
 	opened,
 	onClose,
 	foodItem,
-	handleSubmission,
+	initialServingSizeVal,
+	submissionType,
+	diaryId,
 }: FoodDiaryEntryModalProps) => {
 	if (!foodItem) return null;
+	if (submissionType === 'edit' && !diaryId) {
+		throw new Error('You must submit a diary edit id with a submission type of edit');
+	}
 
 	const { name, standardServingSize, servingUnit, caloriesPerServing } = foodItem;
+	const initialServingSize = initialServingSizeVal ?? standardServingSize;
+	const router = useRouter();
+	const day = router.query.date as string;
+	const category = router.query.mealCategory as MealCategoryType;
+	const { mutateAsync: addDiaryEntryMutation } = api.foodDiary.addEntry.useMutation();
+	const { mutateAsync: editDiaryEntryMutation } = api.foodDiary.editEntry.useMutation();
+	const utils = api.useContext();
+
 	const form = useForm({
 		initialValues: {
-			eatenServingSize: standardServingSize,
+			eatenServingSize: initialServingSize,
 		},
 
 		validate: {
@@ -405,8 +447,51 @@ const FoodDiaryEntryModal = ({
 		},
 	});
 
-	const handleSubmitClick = ({ eatenServingSize }: typeof form.values) => {
-		handleSubmission({ foodItem, eatenServingSize });
+	const handleEditDiaryEntry = async (eatenServingSize: number) => {
+		if (!diaryId) return onClose();
+
+		await editDiaryEntryMutation(
+			{
+				diaryId,
+				eatenServingSize,
+			},
+			{
+				onError: error => console.error('error editing food diary entry: ', error),
+				onSuccess: input => {
+					utils.foodDiary.getEntriesByDayAndCategory.invalidate({ day, category });
+				},
+			}
+		);
+	};
+
+	const handleAddDiaryEntry = async (
+		item: FoodItem,
+		eatenServingSize: number = item.standardServingSize
+	) => {
+		await addDiaryEntryMutation(
+			{ day, category, foodItemId: item.id, eatenServingSize },
+			{
+				onError: error => {
+					console.error('error adding foodDiary entry: ', error);
+				},
+				onSuccess: () => {
+					utils.foodDiary.getDiaryEntryCount.invalidate({ day, category });
+					utils.foodDiary.getEntriesByDayAndCategory.invalidate({ day, category });
+				},
+			}
+		);
+	};
+
+	const handleSubmitClick = async ({ eatenServingSize }: typeof form.values) => {
+		if (submissionType === 'edit') {
+			await handleEditDiaryEntry(eatenServingSize);
+		}
+
+		if (submissionType === 'create') {
+			await handleAddDiaryEntry(foodItem, eatenServingSize);
+		}
+
+		handleOnClose();
 	};
 
 	const totalCalories = calculateTotalCalories({
@@ -415,13 +500,15 @@ const FoodDiaryEntryModal = ({
 		caloriesPerServing,
 	});
 
+	const handleOnClose = () => {
+		form.reset();
+		onClose();
+	};
+
 	return (
 		<Modal.Root
 			opened={opened}
-			onClose={() => {
-				console.log('closing modal now');
-				onClose();
-			}}
+			onClose={handleOnClose}
 			transitionProps={{ transition: 'slide-up', duration: 300 }}
 			fullScreen
 			styles={() => ({
@@ -436,7 +523,7 @@ const FoodDiaryEntryModal = ({
 				<Modal.Header sx={{ justifyContent: 'space-between' }}>
 					<Stack w='100%' pb='xs'>
 						<Group position='apart'>
-							<ActionIcon onClick={onClose}>
+							<ActionIcon onClick={handleOnClose}>
 								<ChevronLeft />
 							</ActionIcon>
 
@@ -461,17 +548,24 @@ const FoodDiaryEntryModal = ({
 					<form onSubmit={form.onSubmit(handleSubmitClick)}>
 						<ScrollArea.Autosize mah='100%'>
 							<Box h={20}></Box>
-							<Stack>
+							<Stack spacing='xl'>
 								<Group position='center'>
 									<NumberInput
-										{...form.getInputProps('servingSize')}
 										w={50}
 										hideControls
 										aria-label='Serving Size'
+										{...form.getInputProps('eatenServingSize')}
 									/>{' '}
 									<Text>{servingUnit}(s)</Text>
 								</Group>
-								<Text>{totalCalories} calories</Text>
+								<Text ta='center'>
+									Standard serving size: {standardServingSize}
+									{servingUnit}
+								</Text>
+								<Group spacing='xs' position='center'>
+									<Text size='xl'>{totalCalories}</Text>
+									<Text>calories</Text>
+								</Group>
 							</Stack>
 							<Box h={70}></Box>
 						</ScrollArea.Autosize>

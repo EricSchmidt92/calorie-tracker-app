@@ -215,28 +215,34 @@ export const foodDiaryRouter = createTRPCRouter({
 			});
 		}),
 
+	editEntry: protectedProcedure
+		.input(
+			z.object({
+				diaryId: z.string().nonempty(),
+				eatenServingSize: z.number().nonnegative(),
+			})
+		)
+		.mutation(async ({ input, ctx: { prisma, session } }) => {
+			const { diaryId, eatenServingSize } = input;
+
+			return prisma.foodDiary.update({
+				data: {
+					eatenServingSize,
+				},
+				where: {
+					id: diaryId,
+					userId: session.user.id,
+				},
+			});
+		}),
+
 	removeEntry: protectedProcedure
 		.input(z.object({ id: z.string().nonempty() }))
 		.mutation(async ({ input: { id }, ctx: { prisma, session } }) => {
-			const { userId } = await prisma.foodDiary.findUniqueOrThrow({
-				select: {
-					userId: true,
-				},
-				where: {
-					id,
-				},
-			});
-
-			if (userId !== session.user.id) {
-				throw new TRPCError({
-					code: 'UNAUTHORIZED',
-					message: 'User does not own food diary entry',
-				});
-			}
-
 			const item = await prisma.foodDiary.delete({
 				where: {
 					id,
+					userId: session.user.id,
 				},
 			});
 
