@@ -131,23 +131,21 @@ const FoodDiaryEntryModal = ({
 
 			<Modal.Content>
 				<Modal.Header sx={{ justifyContent: 'space-between' }}>
-					<Stack w='100%' pb='xs'>
-						<Group position='apart'>
-							<ActionIcon onClick={handleOnClose}>
-								<ChevronLeft />
-							</ActionIcon>
+					<Group position='apart' w='100%'>
+						<ActionIcon onClick={handleOnClose}>
+							<ChevronLeft />
+						</ActionIcon>
 
-							<Modal.Title>
-								<Text m='0' fw='bold' maw={200}>
-									{name}
-								</Text>
-							</Modal.Title>
+						<Modal.Title>
+							<Text m='0' fw='bold' maw={200}>
+								{name}
+							</Text>
+						</Modal.Title>
 
-							<ActionIcon size='sm'>
-								<Heart />
-							</ActionIcon>
-						</Group>
-					</Stack>
+						<ActionIcon size='sm'>
+							<Heart />
+						</ActionIcon>
+					</Group>
 				</Modal.Header>
 
 				<Modal.Body

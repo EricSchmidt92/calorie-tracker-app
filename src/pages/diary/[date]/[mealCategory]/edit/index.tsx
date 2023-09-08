@@ -10,19 +10,35 @@ import {
 	Center,
 	Group,
 	Input,
+	Menu,
+	Modal,
+	NumberInput,
 	ScrollArea,
 	SegmentedControl,
+	Select,
 	Stack,
 	Text,
+	TextInput,
 	useMantineTheme,
 } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { useDebouncedValue, useDisclosure, useInputState } from '@mantine/hooks';
-import { FoodItem, MealCategoryType } from '@prisma/client';
+import { FoodItem, MealCategoryType, UnitOfMeasurement } from '@prisma/client';
 import { NextPage } from 'next';
 
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { CirclePlus, CircleX, Dots, Heart, History, List, Search } from 'tabler-icons-react';
+import {
+	CirclePlus,
+	CircleX,
+	Dots,
+	Heart,
+	History,
+	List,
+	Plus,
+	Search,
+	X,
+} from 'tabler-icons-react';
 
 const EditDiaryPage: NextPage = () => {
 	const router = useRouter();
@@ -88,18 +104,16 @@ const EditDiaryPage: NextPage = () => {
 					zIndex: 2,
 				}}
 			>
-				<Group position='apart'>
-					<Button variant='subtle' color='dark.0' onClick={router.back}>
-						X
-					</Button>
+				<Group position='apart' pb='xs'>
+					<ActionIcon onClick={router.back}>
+						<X />
+					</ActionIcon>
 
 					<Text m='0' fw='bold'>
 						{category}
 					</Text>
 
-					<ActionIcon size='sm'>
-						<Dots />
-					</ActionIcon>
+					<SubMenu />
 				</Group>
 				<Input
 					radius='xl'
@@ -176,6 +190,146 @@ const EditDiaryPage: NextPage = () => {
 };
 
 export default EditDiaryPage;
+
+const SubMenu = () => {
+	const [opened, { open, close }] = useDisclosure(false);
+	return (
+		<>
+			<Menu position='bottom-end' offset={2} transitionProps={{ transition: 'scale-y' }}>
+				<Menu.Target>
+					<ActionIcon size='md'>
+						<Dots size='4rem' />
+					</ActionIcon>
+				</Menu.Target>
+
+				<Menu.Dropdown bg='base.4'>
+					<Menu.Item onClick={open}>
+						<Group>
+							<Text>Create food</Text>
+							<Plus />
+						</Group>
+					</Menu.Item>
+				</Menu.Dropdown>
+			</Menu>
+
+			<CreateFoodModal opened={opened} onClose={close} />
+		</>
+	);
+};
+
+interface CreateFoodModalProps {
+	opened: boolean;
+	onClose: () => void;
+}
+
+type ModalInitProps = Omit<FoodItem, 'id'>;
+
+const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
+	const form = useForm<ModalInitProps>({
+		initialValues: {
+			name: '',
+			caloriesPerServing: 0,
+			standardServingSize: 0,
+			servingUnit: 'g',
+		},
+	});
+
+	const { mutateAsync: createFoodItemMutation } = api.foodItem.create.useMutation();
+
+	const selectVals: UnitOfMeasurement[] = ['g', 'mL'];
+
+	const handleOnClose = () => {
+		form.reset();
+		onClose();
+	};
+
+	const createFoodItem = async (values: ModalInitProps) => {
+		createFoodItemMutation(
+			{
+				...values,
+			},
+			{
+				onError: error => console.error('something went wrong creating food item: ', error),
+				onSuccess: item => {
+					console.log('item successfully created!: ', item);
+					handleOnClose();
+				},
+			}
+		);
+	};
+
+	return (
+		<Modal.Root
+			opened={opened}
+			onClose={handleOnClose}
+			transitionProps={{ transition: 'slide-up', duration: 300 }}
+			fullScreen
+			styles={() => ({
+				body: {
+					height: '90%',
+				},
+			})}
+		>
+			<Modal.Overlay />
+
+			<Modal.Content>
+				<Modal.Header sx={{ justifyContent: 'space-between' }}>
+					<ActionIcon onClick={handleOnClose}>
+						<X />
+					</ActionIcon>
+
+					<Modal.Title ta='center' sx={{ flex: 2 }} fw='bold' pr='2rem'>
+						Create Food
+					</Modal.Title>
+				</Modal.Header>
+
+				<Modal.Body
+					h='84%'
+					display='flex'
+					sx={{ flexDirection: 'column', justifyContent: 'space-between' }}
+				>
+					<form onSubmit={form.onSubmit(createFoodItem)} style={{ height: '100%' }}>
+						<Stack pt='lg' h='100%' w='100%' display='flex' justify='space-between'>
+							<Stack>
+								<TextInput
+									required
+									label='Food Name'
+									placeholder='Chicken'
+									{...form.getInputProps('name')}
+								/>
+
+								<NumberInput
+									aria-label='Calories Per Serving'
+									hideControls
+									label='Calories Per Serving'
+									{...form.getInputProps('caloriesPerServing')}
+								/>
+
+								<NumberInput
+									required
+									hideControls
+									label='Standard Serving size'
+									{...form.getInputProps('standardServingSize')}
+								/>
+
+								<Select
+									required
+									label='Serving Unit'
+									placeholder={selectVals[0]}
+									data={selectVals}
+								/>
+							</Stack>
+
+							<Button tt='uppercase' type='submit' h={50}>
+								Create Food
+							</Button>
+						</Stack>
+					</form>
+				</Modal.Body>
+			</Modal.Content>
+		</Modal.Root>
+	);
+};
 
 const FoodSummaryMainContent = ({ day, category }: { day: string; category: MealCategoryType }) => {
 	const [subMenuSelection, setSubMenuSelection] = useInputState('favorites');

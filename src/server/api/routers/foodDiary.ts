@@ -6,6 +6,13 @@ import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
 import { z } from 'zod';
 
+const mealCategoryEnum = z.enum<MealCategoryType, [MealCategoryType, ...MealCategoryType[]]>([
+	'Breakfast',
+	'Lunch',
+	'Dinner',
+	'Snack',
+]);
+
 const validateISOString = (dateTime: DateTime) => {
 	if (!dateTime.isValid) {
 		throw new TRPCError({
@@ -15,19 +22,10 @@ const validateISOString = (dateTime: DateTime) => {
 	}
 };
 
-const mealCategoryEnum = z.enum<MealCategoryType, [MealCategoryType, ...MealCategoryType[]]>([
-	'Breakfast',
-	'Lunch',
-	'Dinner',
-	'Snack',
-]);
-
 const GetDiaryEntrySchema = z.object({
 	category: mealCategoryEnum,
 	day: z.string().nonempty(),
 });
-
-type TDiaryEntrySchema = z.TypeOf<typeof GetDiaryEntrySchema>;
 
 export interface MealCategorySummary {
 	type: $Enums.MealCategoryType;
