@@ -114,7 +114,7 @@ const Footer = () => {
 
 	if (!sessionData?.user) return undefined;
 
-	if (pathname === '/diary/[date]/[mealCategory]/edit') return undefined;
+	if (pathname.startsWith('/diary/[date]/[mealCategory]')) return undefined;
 
 	// const primaryColor = colors.success[4];
 	const primaryColor = colors.primaryPink[3];
