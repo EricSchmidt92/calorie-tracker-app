@@ -1,4 +1,4 @@
-import { Button, Text } from '@mantine/core';
+import { Button, Center, Text } from '@mantine/core';
 import { DateTime } from 'luxon';
 import { signIn, useSession } from 'next-auth/react';
 import Head from 'next/head';
@@ -21,7 +21,9 @@ const Home: NextPageWithLayout = () => {
 				/>
 			</Head>
 			{!session?.user ? (
-				<Button onClick={() => void signIn()}>Login to use app</Button>
+				<Center h='100%'>
+					<Button onClick={() => void signIn()}>Login to use app</Button>
+				</Center>
 			) : (
 				<HomeAuthenticated />
 			)}

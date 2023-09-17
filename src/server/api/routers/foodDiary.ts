@@ -278,4 +278,66 @@ export const foodDiaryRouter = createTRPCRouter({
 				},
 			});
 		}),
+
+	getCalorieCountByDayAndCategory: protectedProcedure
+		.input(
+			z.object({
+				day: z.string().nonempty(),
+				category: mealCategoryEnum,
+			})
+		)
+		.query(
+			async ({
+				input: { day, category },
+				ctx: { prisma, session },
+			}): Promise<{ calorieCount: number }> => {
+				const dateTime = DateTime.fromISO(day);
+				const userId = session.user.id;
+
+				validateISOString(dateTime);
+
+				const dayStart = dateTime.startOf('day').toISO();
+				const dayEnd = dateTime.endOf('day').toISO();
+
+				if (!dayStart || !dayEnd) {
+					throw new TRPCError({
+						code: 'BAD_REQUEST',
+						message: 'Invalid date for day passed in',
+					});
+				}
+
+				const entries = await prisma.foodDiary.findMany({
+					select: {
+						eatenServingSize: true,
+						foodItem: true,
+					},
+
+					where: {
+						userId,
+						mealCategory: {
+							type: category,
+						},
+						date: {
+							gte: dayStart,
+							lte: dayEnd,
+						},
+					},
+				});
+
+				const calorieCount = entries.reduce((total, { eatenServingSize, foodItem }) => {
+					const { caloriesPerServing, standardServingSize } = foodItem;
+					const totalCalories = calculateTotalCalories({
+						standardServingSize,
+						caloriesPerServing,
+						eatenServingSize,
+					});
+
+					return total + totalCalories;
+				}, 0);
+
+				return {
+					calorieCount,
+				};
+			}
+		),
 });

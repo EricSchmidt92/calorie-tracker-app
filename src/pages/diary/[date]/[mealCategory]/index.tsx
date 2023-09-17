@@ -1,8 +1,10 @@
 import DiaryList from '@/components/FoodDiary/DiaryList';
-import { ActionIcon, Box, Button, Stack, Text } from '@mantine/core';
+import { api } from '@/utils/api';
+import { ActionIcon, Box, Button, Group, Stack, Text } from '@mantine/core';
 import { MealCategoryType } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { NextPage } from 'next';
+import Link from 'next/link';
 import router, { useRouter } from 'next/router';
 import React from 'react';
 import { ChevronLeft } from 'tabler-icons-react';
@@ -19,19 +21,38 @@ const MealCategoryPage: NextPage = () => {
 		weekday: 'long',
 	});
 
+	const {
+		data: calorieCountData,
+		isError: calorieCountError,
+		isLoading: calorieCountLoading,
+	} = api.foodDiary.getCalorieCountByDayAndCategory.useQuery({ day, category });
+
 	return (
 		<Stack justify='space-between' h='100%'>
 			<Box>
-				<Stack h='80%' bg='accent.4' m='-md' p='md'>
-					<ActionIcon onClick={router.back}>
+				<Stack h='80%' bg='neutral.' m='-md' p='md' justify='space-between'>
+					<ActionIcon component={Link} href='/'>
 						<ChevronLeft />
 					</ActionIcon>
-
 					<Stack spacing={0} align='center'>
-						<Text tt='capitalize' fw='bold' size='xl'>
+						<Text tt='capitalize' fw='bold' size='2rem'>
 							{category}
 						</Text>
 						<Text size='sm'>{dateStr}</Text>
+					</Stack>
+					<Stack align='center'>
+						{calorieCountError && (
+							<Text color='error.4'>Error getting calorie count...please try again</Text>
+						)}
+						{calorieCountLoading && <Text>Calculating calories</Text>}
+						{calorieCountData && (
+							<Group spacing={5} align='baseline'>
+								<Text fw='bold' size='1.5rem'>
+									{calorieCountData.calorieCount}
+								</Text>
+								<Text>cal</Text>
+							</Group>
+						)}
 					</Stack>
 				</Stack>
 
@@ -39,7 +60,13 @@ const MealCategoryPage: NextPage = () => {
 			</Box>
 
 			<Box pos='sticky' bottom={0} left={20} right={20} bg='base.6' h={120}>
-				<Button fullWidth onClick={router.back} h={50} tt='uppercase'>
+				<Button
+					fullWidth
+					component={Link}
+					href={`/diary/${day}/${category}/edit`}
+					h={50}
+					tt='uppercase'
+				>
 					Add More Food
 				</Button>
 			</Box>
