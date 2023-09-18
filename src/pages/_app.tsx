@@ -116,7 +116,7 @@ const Footer = () => {
 	const { data: sessionData } = useSession();
 	const { colors } = useMantineTheme();
 	const { pathname, ...router } = useRouter();
-	const [opened, { open, close }] = useDisclosure(true); //TODO: don't forget to change this back to false
+	const [opened, { open, close }] = useDisclosure(false);
 	const { data: mealCategoryData } = api.mealCategory.getAll.useQuery();
 	const dateQueryParam = router.query.date as string;
 	const date = DateTime.fromISO(dateQueryParam).toISODate();
