@@ -1,5 +1,6 @@
 import { MealCategorySummary } from '@/server/api/routers/foodDiary';
 import { api } from '@/utils/api';
+import { IconMap } from '@/utils/mealCategoryUtils';
 import {
 	ActionIcon,
 	Card,
@@ -14,7 +15,6 @@ import {
 	em,
 	useMantineTheme,
 } from '@mantine/core';
-import { MealCategoryType } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { NextPage } from 'next';
 import Link from 'next/link';
@@ -159,13 +159,6 @@ const useStyles = createStyles(() => ({
 }));
 
 const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
-	const IconMap: Record<MealCategoryType, IconName> = {
-		Breakfast: 'Coffee',
-		Lunch: 'Salad',
-		Dinner: 'Soup',
-		Snack: 'Cookie',
-	};
-
 	const { classes } = useStyles();
 
 	const { type, calorieCount, foodItems } = summary;
