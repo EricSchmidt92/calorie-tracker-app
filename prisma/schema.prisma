@@ -100,7 +100,8 @@ model User {
     sessions      Session[]
 
     foodDiaryEntries FoodDiary[]
-    goals            Goal[]
+
+    goals Goal?
 }
 
 model VerificationToken {

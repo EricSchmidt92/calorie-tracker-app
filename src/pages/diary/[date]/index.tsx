@@ -187,6 +187,9 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 		router.push(`/diary/${dateTime.toISODate()}/${summary.type}`);
 	};
 
+	// TODO: look into swiping features
+	// TODO: can I get calorie info from api based on barcode?
+
 	const handleAddToMealCategory: MouseEventHandler<SVGElement> = event => {
 		event.stopPropagation();
 		router.push(`/diary/${dateTime.toISODate()}/${summary.type}/edit`);

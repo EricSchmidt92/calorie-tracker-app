@@ -10,6 +10,8 @@ import {
 	SimpleGrid,
 	Stack,
 	Text,
+	Header as MantineHeader,
+	Footer as MantineFooter,
 	UnstyledButton,
 	useMantineTheme,
 } from '@mantine/core';
@@ -26,6 +28,7 @@ import { DateTime } from 'luxon';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import * as Icons from 'tabler-icons-react';
+import Link from 'next/link';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
 	getLayout?: (page: ReactElement) => ReactNode;
@@ -61,6 +64,7 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 						globalStyles: theme => ({
 							body: {
 								backgroundColor: theme.colors.base[6],
+								overscrollBehavior: 'none',
 							},
 							backgroundColor: theme.colors.base[6],
 						}),
@@ -103,7 +107,9 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 						},
 					}}
 				>
-					<AppShell footer={<Footer />}>{getLayout(<Component {...pageProps} />)}</AppShell>
+					<AppShell header={<Header />} footer={<Footer />}>
+						{getLayout(<Component {...pageProps} />)}
+					</AppShell>
 				</MantineProvider>
 			</SessionProvider>
 		</>
@@ -112,6 +118,25 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 
 export default api.withTRPC(MyApp);
 
+const Header = () => {
+	const { colors } = useMantineTheme();
+	const router = useRouter();
+	const active = router.pathname === '/profile';
+	const primaryColor = colors.primaryPink[3];
+	const color = active ? primaryColor : colors.dark[0];
+	console.log('color: ', color);
+	return (
+		<MantineHeader height='1em' color='dark.6'>
+			<Group position='right' p='lg'>
+				<ActionIcon component={Link} size='lg' href='/profile'>
+					<Icons.User color={color} size={25} strokeWidth={2.5} />
+				</ActionIcon>
+			</Group>
+		</MantineHeader>
+	);
+};
+
+// TODO: look at chartjs
 const Footer = () => {
 	const { data: sessionData } = useSession();
 	const { colors } = useMantineTheme();
@@ -132,81 +157,84 @@ const Footer = () => {
 	const buttonBackgroundColor = colors.neutral[6];
 
 	return (
-		<>
-			<Group
-				align='start'
-				bg='neutral.6'
-				pos='sticky'
-				bottom={0}
-				left={0}
-				right={0}
-				h='12%'
-				mih='12%'
-				pt={2}
-				pb='md'
-				sx={{
-					zIndex: 2,
-					justifyContent: 'space-evenly',
-				}}
-			>
-				<NavButton
-					onClick={() => router.push(`/diary/${DateTime.now().toISODate()}`)}
-					active={pathname.startsWith('/diary')}
-					iconName='Book'
+		<MantineFooter height='12%'>
+			<>
+				<Group
+					align='start'
+					bg='neutral.6'
+					// pos='sticky'
+					// bottom={0}
+					// left={0}
+					// right={0}
+					// h='12%'
+					// mih='12%'
+					pt={2}
+					pb='md'
+					sx={{
+						zIndex: 2,
+						justifyContent: 'space-evenly',
+					}}
 				>
-					Diary
-				</NavButton>
+					<NavButton
+						onClick={() => router.push(`/diary/${DateTime.now().toISODate()}`)}
+						active={pathname.startsWith('/diary')}
+						iconName='Book'
+					>
+						Diary
+					</NavButton>
 
-				<NavButton
-					iconName='CirclePlus'
-					size={55}
-					color={buttonBackgroundColor}
-					fill={primaryColor}
-					strokeWidth={1}
-					onClick={open}
-				/>
+					<NavButton
+						iconName='CirclePlus'
+						size={55}
+						color={buttonBackgroundColor}
+						fill={primaryColor}
+						strokeWidth={1}
+						onClick={open}
+					/>
 
-				<NavButton
-					onClick={() => router.push('/progress')}
-					active={pathname === '/progress'}
-					iconName='ChartLine'
+					<NavButton
+						onClick={() => router.push('/progress')}
+						active={pathname === '/progress'}
+						iconName='ChartLine'
+					>
+						Progress
+					</NavButton>
+				</Group>
+				<Modal
+					opened={opened}
+					onClose={close}
+					withCloseButton={false}
+					yOffset='55%'
+					overlayProps={{
+						color: colors.dark[9],
+						opacity: 0.95,
+						blur: 10,
+					}}
 				>
-					Progress
-				</NavButton>
-			</Group>
-			<Modal
-				opened={opened}
-				onClose={close}
-				withCloseButton={false}
-				yOffset='55%'
-				overlayProps={{
-					color: colors.dark[9],
-					opacity: 0.95,
-					blur: 10,
-				}}
-			>
-				<Stack h='20rem' justify='space-between' align='center'>
-					<SimpleGrid cols={2} spacing='xl' verticalSpacing='xl' w='80%'>
-						{mealCategoryData?.map(({ type }) => (
-							<ModalMenuButton
-								iconName={IconMap[type]}
-								title={type}
-								onClick={() => {
-									close();
-									router.push(`/diary/${parsedIsoDate}/${type}`);
-								}}
-							>
-								{type}
-							</ModalMenuButton>
-						))}
-					</SimpleGrid>
+					<Stack h='20rem' justify='space-between' align='center'>
+						<SimpleGrid cols={2} spacing='xl' verticalSpacing='xl' w='80%'>
+							{mealCategoryData?.map(({ type, id }) => (
+								<ModalMenuButton
+									key={id}
+									iconName={IconMap[type]}
+									title={type}
+									onClick={() => {
+										close();
+										router.push(`/diary/${parsedIsoDate}/${type}`);
+									}}
+								>
+									{type}
+								</ModalMenuButton>
+							))}
+						</SimpleGrid>
 
-					<ActionIcon variant='filled' color='primaryPink' size='lg' radius='xl' title='close'>
-						<Icons.X size='1.3rem' strokeWidth={2.25} />
-					</ActionIcon>
-				</Stack>
-			</Modal>
-		</>
+						<ActionIcon variant='filled' color='primaryPink' size='lg' radius='xl' title='close'>
+							<Icons.X size='1.3rem' strokeWidth={2.25} />
+						</ActionIcon>
+					</Stack>
+				</Modal>
+			</>
+		</MantineFooter>
 	);
 };
 
