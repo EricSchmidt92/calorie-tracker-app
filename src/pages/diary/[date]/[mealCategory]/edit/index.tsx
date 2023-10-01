@@ -91,20 +91,20 @@ const EditDiaryPage: NextPage = () => {
 	};
 
 	return (
-		<Stack mah='100%' h='100%' sx={{ flex: 2 }} spacing={0}>
+		<Stack mah='100%' h='100%' style={{ flex: 2 }} gap={0}>
 			<Box
 				bg='neutral.6'
 				p='sm'
 				pos='sticky'
 				top={0}
-				sx={{
+				style={{
 					marginLeft: `-1em`,
 					marginRight: '-1em',
 					marginTop: '-1em',
 					zIndex: 2,
 				}}
 			>
-				<Group position='apart' pb='xs'>
+				<Group justify='apart' pb='xs'>
 					<ActionIcon onClick={router.back}>
 						<X />
 					</ActionIcon>
@@ -118,7 +118,7 @@ const EditDiaryPage: NextPage = () => {
 				<Input
 					radius='xl'
 					variant='filled'
-					icon={<Search size='1rem' />}
+					leftSection={<Search size='1rem' />}
 					rightSection={
 						searchValue ? (
 							<CircleX
@@ -137,7 +137,7 @@ const EditDiaryPage: NextPage = () => {
 				/>
 			</Box>
 			{searchValue ? (
-				<ScrollArea.Autosize mah='90%' sx={{ flex: 2 }}>
+				<ScrollArea.Autosize mah='90%' style={{ flex: 2 }}>
 					<Stack>
 						<Box h={20}></Box>
 						{error && <Text color='error.4'>Error fetching food items</Text>}
@@ -264,7 +264,7 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 			onClose={handleOnClose}
 			transitionProps={{ transition: 'slide-up', duration: 300 }}
 			fullScreen
-			styles={() => ({
+			style={() => ({
 				body: {
 					height: '90%',
 				},
@@ -273,12 +273,12 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 			<Modal.Overlay />
 
 			<Modal.Content>
-				<Modal.Header sx={{ justifyContent: 'space-between' }}>
+				<Modal.Header style={{ justifyContent: 'space-between' }}>
 					<ActionIcon onClick={handleOnClose}>
 						<X />
 					</ActionIcon>
 
-					<Modal.Title ta='center' sx={{ flex: 2 }} fw='bold' pr='2rem'>
+					<Modal.Title ta='center' style={{ flex: 2 }} fw='bold' pr='2rem'>
 						Create Food
 					</Modal.Title>
 				</Modal.Header>
@@ -286,7 +286,7 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 				<Modal.Body
 					h='84%'
 					display='flex'
-					sx={{ flexDirection: 'column', justifyContent: 'space-between' }}
+					style={{ flexDirection: 'column', justifyContent: 'space-between' }}
 				>
 					<form onSubmit={form.onSubmit(createFoodItem)} style={{ height: '100%' }}>
 						<Stack pt='lg' h='100%' w='100%' display='flex' justify='space-between'>
@@ -348,7 +348,7 @@ const FoodSummaryMainContent = ({ day, category }: { day: string; category: Meal
 				right={0}
 				pos='sticky'
 				display='flex'
-				sx={{
+				style={{
 					zIndex: 1,
 					flexDirection: 'column',
 					alignItems: 'stretch',

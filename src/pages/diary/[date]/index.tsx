@@ -1,3 +1,5 @@
+import classes from '@/styles/diaryIndex.module.css';
+
 import { MealCategorySummary } from '@/server/api/routers/foodDiary';
 import { api } from '@/utils/api';
 import { IconMap } from '@/utils/mealCategoryUtils';
@@ -11,8 +13,7 @@ import {
 	ScrollArea,
 	Stack,
 	Text,
-	createStyles,
-	em,
+	rem,
 	useMantineTheme,
 } from '@mantine/core';
 import { DateTime } from 'luxon';
@@ -71,7 +72,7 @@ const DiarySummaryPage: NextPage = () => {
 					caloriesLimit={dailySummary.calorieLimit}
 				/>
 				{dateTime.hasSame(DateTime.now(), 'day')}
-				<Group position='apart'>
+				<Group justify='apart'>
 					<ActionIcon component={Link} href={`/diary/${dateTime.minus({ day: 1 }).toISODate()}`}>
 						<Icons.ChevronLeft />
 					</ActionIcon>
@@ -97,13 +98,13 @@ interface CalorieSummaryHeaderProps {
 const CalorieSummaryHeader = ({ caloriesConsumed, caloriesLimit }: CalorieSummaryHeaderProps) => {
 	const calorieLimitPercentage = Math.round((caloriesConsumed / caloriesLimit) * 100);
 	return (
-		<Group position='center' spacing={0}>
+		<Group justify='center' gap={0}>
 			<HeaderSubText calories={caloriesConsumed} text='eaten' />
 			<RingProgress
 				label={
 					<Center>
-						<Stack spacing={0} align='center'>
-							<Text size={35} fw='bold'>
+						<Stack gap={0} align='center'>
+							<Text size={rem(35)} fw='bold'>
 								{caloriesLimit - caloriesConsumed}
 							</Text>
 							<Text size='xs' fw='bold' tt='uppercase'>
@@ -124,7 +125,7 @@ const CalorieSummaryHeader = ({ caloriesConsumed, caloriesLimit }: CalorieSummar
 };
 
 const HeaderSubText = ({ calories, text }: { calories: number; text: string }) => (
-	<Stack align='center' spacing={0}>
+	<Stack align='center' gap={0}>
 		<Text size='sm' fw='bold'>
 			{calories}
 		</Text>
@@ -138,29 +139,7 @@ interface MealSummaryCardProps {
 	summary: MealCategorySummary;
 }
 
-const useStyles = createStyles(() => ({
-	mealSummaryText: {
-		width: 200,
-
-		[`@media (max-width: ${em(370)})`]: {
-			width: '100px',
-		},
-	},
-
-	foodInfoCardText: {
-		[`@media (max-width: ${em(370)})`]: {
-			width: '180px',
-		},
-
-		[`@media (min-width: ${em(371)}) and (max-width: ${em(450)})`]: {
-			width: '180px',
-		},
-	},
-}));
-
 const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
-	const { classes } = useStyles();
-
 	const { type, calorieCount, foodItems } = summary;
 
 	const iconName = IconMap[type];
@@ -198,11 +177,11 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 	return (
 		<>
 			<Card onClick={handleCardClick}>
-				<Stack spacing='xs'>
-					<Group position='apart'>
-						<Group noWrap>
+				<Stack gap='xs'>
+					<Group justify='apart'>
+						<Group wrap='nowrap'>
 							<Icon size={35} />
-							<Stack spacing={0}>
+							<Stack gap={0}>
 								<Text fw='bold'>{type}</Text>
 								<Text className={classes.mealSummaryText} truncate size='xs'>
 									{foodItems.join(', ')}
@@ -222,7 +201,7 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 					{calorieCount > 0 && (
 						<>
 							<Divider color={colors.neutral[4]} />
-							<Text fw='bold' align='center' size='sm'>
+							<Text fw='bold' ta='center' size='sm'>
 								{calorieCount} calories
 							</Text>
 						</>

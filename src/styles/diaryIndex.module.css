@@ -1,0 +1,17 @@
+.mealSummaryText {
+	width: rem(200px);
+
+	@media (max-width: em(370px)) {
+		width: rem(100px);
+	}
+}
+
+.foodInfoCardText {
+	@media (max-width: em(370)) {
+		width: rem(180px);
+	}
+
+	@media (min-width: em(371)) and (max-width: em(450)) {
+		width: rem(180px);
+	}
+}
