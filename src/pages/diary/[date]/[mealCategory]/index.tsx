@@ -31,7 +31,7 @@ const MealCategoryPage: NextPage = () => {
 		<Stack justify='space-between' h='100%'>
 			<Box>
 				<Stack h='80%' bg='neutral.' p='md' justify='space-between'>
-					<ActionIcon component={Link} href='/'>
+					<ActionIcon aria-label='go back' variant='subtle' component={Link} href='/'>
 						<ChevronLeft />
 					</ActionIcon>
 					<Stack gap={0} align='center'>

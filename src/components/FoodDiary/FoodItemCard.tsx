@@ -22,7 +22,7 @@ const FoodItemCard = ({ foodItem, icon, eatenServingSize, onClick }: FoodItemCar
 	return (
 		<>
 			<Card p='sm' onClick={onClick}>
-				<Group justify='apart'>
+				<Group justify='space-between'>
 					<Stack gap={0}>
 						<Text className={classes.foodInfoCardText} truncate size='sm'>
 							{name}

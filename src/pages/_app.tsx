@@ -158,7 +158,13 @@ const Header = () => {
 
 				<Box></Box>
 				<Box>
-					<ActionIcon component={Link} size='lg' href='/profile'>
+					<ActionIcon
+						component={Link}
+						size='lg'
+						href='/profile'
+						variant='subtle'
+						aria-label='profile link'
+					>
 						<Icons.User color={color} size={25} strokeWidth={2.5} />
 					</ActionIcon>
 				</Box>
@@ -250,7 +256,13 @@ const Footer = () => {
 							))}
 						</SimpleGrid>
 
-						<ActionIcon variant='filled' color='primaryPink' size='lg' radius='xl' title='close'>
+						<ActionIcon
+							variant='filled'
+							color='primaryPink'
+							size='lg'
+							radius='xl'
+							aria-label='close'
+						>
 							<Icons.X size='1.3rem' strokeWidth={2.25} />
 						</ActionIcon>
 					</Stack>
@@ -276,7 +288,7 @@ const ModalMenuButton = ({
 	return (
 		<Stack align='center' gap='xs'>
 			<ActionIcon
-				title={title}
+				aria-label={title}
 				variant='filled'
 				color='purple.3'
 				radius='xl'

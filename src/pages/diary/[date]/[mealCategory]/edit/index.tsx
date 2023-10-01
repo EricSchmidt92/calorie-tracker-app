@@ -98,14 +98,11 @@ const EditDiaryPage: NextPage = () => {
 				pos='sticky'
 				top={0}
 				style={{
-					marginLeft: `-1em`,
-					marginRight: '-1em',
-					marginTop: '-1em',
 					zIndex: 2,
 				}}
 			>
-				<Group justify='apart' pb='xs'>
-					<ActionIcon onClick={router.back}>
+				<Group justify='space-between' pb='xs'>
+					<ActionIcon aria-label='go back' onClick={router.back} variant='subtle'>
 						<X />
 					</ActionIcon>
 
@@ -140,7 +137,7 @@ const EditDiaryPage: NextPage = () => {
 				<ScrollArea.Autosize mah='90%' style={{ flex: 2 }}>
 					<Stack>
 						<Box h={20}></Box>
-						{error && <Text color='error.4'>Error fetching food items</Text>}
+						{error && <Text c='error.4'>Error fetching food items</Text>}
 
 						{searchResults &&
 							searchResults?.map(item => (
@@ -197,7 +194,7 @@ const SubMenu = () => {
 		<>
 			<Menu position='bottom-end' offset={2} transitionProps={{ transition: 'scale-y' }}>
 				<Menu.Target>
-					<ActionIcon size='md'>
+					<ActionIcon aria-label='more options' size='md' variant='subtle'>
 						<Dots size='4rem' />
 					</ActionIcon>
 				</Menu.Target>
@@ -274,7 +271,7 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 
 			<Modal.Content>
 				<Modal.Header style={{ justifyContent: 'space-between' }}>
-					<ActionIcon onClick={handleOnClose}>
+					<ActionIcon aria-label='go back' variant='subtle' onClick={handleOnClose}>
 						<X />
 					</ActionIcon>
 

@@ -72,12 +72,22 @@ const DiarySummaryPage: NextPage = () => {
 					caloriesLimit={dailySummary.calorieLimit}
 				/>
 				{dateTime.hasSame(DateTime.now(), 'day')}
-				<Group justify='apart'>
-					<ActionIcon component={Link} href={`/diary/${dateTime.minus({ day: 1 }).toISODate()}`}>
+				<Group justify='space-between'>
+					<ActionIcon
+						aria-label='next day'
+						variant='subtle'
+						component={Link}
+						href={`/diary/${dateTime.minus({ day: 1 }).toISODate()}`}
+					>
 						<Icons.ChevronLeft />
 					</ActionIcon>
 					<Text>{dayFragment}</Text>
-					<ActionIcon component={Link} href={`/diary/${dateTime.plus({ day: 1 }).toISODate()}`}>
+					<ActionIcon
+						aria-label='previous day'
+						variant='subtle'
+						component={Link}
+						href={`/diary/${dateTime.plus({ day: 1 }).toISODate()}`}
+					>
 						<Icons.ChevronRight />
 					</ActionIcon>
 				</Group>
@@ -178,7 +188,7 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 		<>
 			<Card onClick={handleCardClick}>
 				<Stack gap='xs'>
-					<Group justify='apart'>
+					<Group justify='space-between'>
 						<Group wrap='nowrap'>
 							<Icon size={35} />
 							<Stack gap={0}>
@@ -188,7 +198,7 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 								</Text>
 							</Stack>
 						</Group>
-						<ActionIcon size={51}>
+						<ActionIcon size={51} variant='subtle' aria-label={`edit ${summary.type}`}>
 							<Icons.CirclePlus
 								strokeWidth={1}
 								size={50}

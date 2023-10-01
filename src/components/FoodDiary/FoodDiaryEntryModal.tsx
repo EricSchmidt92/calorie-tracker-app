@@ -131,8 +131,8 @@ const FoodDiaryEntryModal = ({
 
 			<Modal.Content>
 				<Modal.Header style={{ justifyContent: 'space-between' }}>
-					<Group justify='apart' w='100%'>
-						<ActionIcon onClick={handleOnClose}>
+					<Group justify='space-between' w='100%'>
+						<ActionIcon onClick={handleOnClose} aria-label='go back'>
 							<ChevronLeft />
 						</ActionIcon>
 
@@ -142,7 +142,7 @@ const FoodDiaryEntryModal = ({
 							</Text>
 						</Modal.Title>
 
-						<ActionIcon size='sm'>
+						<ActionIcon size='sm' aria-label='favorite item'>
 							<Heart />
 						</ActionIcon>
 					</Group>
