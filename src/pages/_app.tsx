@@ -1,3 +1,6 @@
+import '@mantine/core/styles.css';
+import classes from './index.module.css';
+
 import { themeColors } from '@/constants/colors';
 import '@/styles/globals.css';
 import { api } from '@/utils/api';
@@ -10,10 +13,12 @@ import {
 	SimpleGrid,
 	Stack,
 	Text,
-	Header as MantineHeader,
-	Footer as MantineFooter,
 	UnstyledButton,
 	useMantineTheme,
+	createTheme,
+	CSSVariablesResolver,
+	rem,
+	Box,
 } from '@mantine/core';
 import { type Session } from 'next-auth';
 import { SessionProvider, useSession } from 'next-auth/react';
@@ -39,7 +44,73 @@ type AppPropsWithLayout = AppProps & {
 	session: Session | null;
 };
 
+const neutral6 = 'var(--mantine-color-neutral-6)';
+const base6 = 'var(--mantine-color-base-6)';
+
+const theme = createTheme({
+	colors: themeColors,
+	primaryColor: 'primaryPink',
+	primaryShade: 3,
+	components: {
+		Card: {
+			styles: {
+				root: {
+					backgroundColor: neutral6,
+					color: '#F8F8F2',
+				},
+			},
+		},
+		Modal: {
+			styles: {
+				header: {
+					backgroundColor: neutral6,
+				},
+				content: {
+					backgroundColor: base6,
+				},
+			},
+		},
+		Input: {
+			styles: {
+				input: {
+					backgroundColor: base6,
+				},
+			},
+		},
+		SegmentedControl: {
+			styles: {
+				root: {
+					backgroundColor: 'var(--mantine-color-base-4)',
+				},
+				controlActive: {
+					backgroundColor: neutral6,
+				},
+			},
+		},
+		Footer: {
+			styles: {
+				root: {
+					backgroundColor: neutral6,
+				},
+			},
+		},
+	},
+});
+
+const resolver: CSSVariablesResolver = theme => ({
+	variables: {
+		'--mantine-color-body': theme.colors.base[6],
+	},
+	dark: {
+		'--mantine-color-body': theme.colors.base[6],
+	},
+	light: {},
+});
+
 const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWithLayout) => {
+	const { pathname } = useRouter();
+	const disableAppShell = pathname.startsWith('/diary/[date]/[mealCategory]');
+
 	const getLayout = Component.getLayout ?? (page => page);
 	return (
 		<>
@@ -53,62 +124,17 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 				/>
 			</Head>
 			<SessionProvider session={session}>
-				<MantineProvider
-					withNormalizeCSS
-					withGlobalStyles
-					theme={{
-						colorScheme: 'dark',
-						colors: themeColors,
-						primaryColor: 'primaryPink',
-						primaryShade: 3,
-						globalStyles: theme => ({
-							body: {
-								backgroundColor: theme.colors.base[6],
-								overscrollBehavior: 'none',
-							},
-							backgroundColor: theme.colors.base[6],
-						}),
-						components: {
-							Card: {
-								styles: theme => ({
-									root: {
-										backgroundColor: theme.colors.neutral[6],
-										color: '#F8F8F2',
-									},
-								}),
-							},
-							Modal: {
-								styles: theme => ({
-									header: {
-										backgroundColor: theme.colors.neutral[6],
-									},
-									content: {
-										backgroundColor: theme.colors.base[6],
-									},
-								}),
-							},
-							Input: {
-								styles: theme => ({
-									input: {
-										backgroundColor: theme.colors.base[6],
-									},
-								}),
-							},
-							SegmentedControl: {
-								styles: theme => ({
-									root: {
-										backgroundColor: theme.colors.base[4],
-									},
-									controlActive: {
-										backgroundColor: theme.colors.neutral[6],
-									},
-								}),
-							},
-						},
-					}}
-				>
-					<AppShell header={<Header />} footer={<Footer />}>
-						{getLayout(<Component {...pageProps} />)}
+				<MantineProvider theme={theme} cssVariablesResolver={resolver} defaultColorScheme='dark'>
+					<AppShell
+						header={{ height: rem(75) }}
+						footer={{ height: rem(75) }}
+						withBorder={false}
+						padding={disableAppShell ? 0 : 'lg'}
+						disabled={disableAppShell}
+					>
+						<Header />
+						<AppShell.Main>{getLayout(<Component {...pageProps} />)}</AppShell.Main>
+						<Footer />
 					</AppShell>
 				</MantineProvider>
 			</SessionProvider>
@@ -124,15 +150,20 @@ const Header = () => {
 	const active = router.pathname === '/profile';
 	const primaryColor = colors.primaryPink[3];
 	const color = active ? primaryColor : colors.dark[0];
-	console.log('color: ', color);
+
 	return (
-		<MantineHeader height='1em' color='dark.6'>
-			<Group position='right' p='lg'>
-				<ActionIcon component={Link} size='lg' href='/profile'>
-					<Icons.User color={color} size={25} strokeWidth={2.5} />
-				</ActionIcon>
+		<AppShell.Header color='dark.6'>
+			<Group justify='space-between' p='lg'>
+				<Box>{}</Box>
+
+				<Box></Box>
+				<Box>
+					<ActionIcon component={Link} size='lg' href='/profile'>
+						<Icons.User color={color} size={25} strokeWidth={2.5} />
+					</ActionIcon>
+				</Box>
 			</Group>
-		</MantineHeader>
+		</AppShell.Header>
 	);
 };
 
@@ -150,27 +181,18 @@ const Footer = () => {
 
 	if (!sessionData?.user) return undefined;
 
-	if (pathname.startsWith('/diary/[date]/[mealCategory]')) return undefined;
-
-	// const primaryColor = colors.success[4];
 	const primaryColor = colors.primaryPink[3];
 	const buttonBackgroundColor = colors.neutral[6];
 
 	return (
-		<MantineFooter height='12%'>
+		<AppShell.Footer>
 			<>
 				<Group
 					align='start'
 					bg='neutral.6'
-					// pos='sticky'
-					// bottom={0}
-					// left={0}
-					// right={0}
-					// h='12%'
-					// mih='12%'
 					pt={2}
 					pb='md'
-					sx={{
+					style={{
 						zIndex: 2,
 						justifyContent: 'space-evenly',
 					}}
@@ -234,7 +256,7 @@ const Footer = () => {
 					</Stack>
 				</Modal>
 			</>
-		</MantineFooter>
+		</AppShell.Footer>
 	);
 };
 
@@ -252,7 +274,7 @@ const ModalMenuButton = ({
 	const Icon = Icons[iconName];
 
 	return (
-		<Stack align='center' spacing='xs'>
+		<Stack align='center' gap='xs'>
 			<ActionIcon
 				title={title}
 				variant='filled'
@@ -291,8 +313,8 @@ const NavButton = ({
 	const color = active ? primaryColor : colors.dark[0];
 
 	return (
-		<UnstyledButton onClick={onClick} sx={{ flex: 1 }}>
-			<Stack align='center' justify='flex-start' spacing={0}>
+		<UnstyledButton onClick={onClick} className={classes.flex1}>
+			<Stack align='center' justify='flex-start' gap={0}>
 				<Icon size={size ?? 40} color={color} {...props} />
 				{children && <Text size='xs'>{children}</Text>}
 			</Stack>

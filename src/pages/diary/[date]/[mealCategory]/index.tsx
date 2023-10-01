@@ -30,11 +30,11 @@ const MealCategoryPage: NextPage = () => {
 	return (
 		<Stack justify='space-between' h='100%'>
 			<Box>
-				<Stack h='80%' bg='neutral.' m='-md' p='md' justify='space-between'>
+				<Stack h='80%' bg='neutral.' p='md' justify='space-between'>
 					<ActionIcon component={Link} href='/'>
 						<ChevronLeft />
 					</ActionIcon>
-					<Stack spacing={0} align='center'>
+					<Stack gap={0} align='center'>
 						<Text tt='capitalize' fw='bold' size='2rem'>
 							{category}
 						</Text>
@@ -42,11 +42,11 @@ const MealCategoryPage: NextPage = () => {
 					</Stack>
 					<Stack align='center'>
 						{calorieCountError && (
-							<Text color='error.4'>Error getting calorie count...please try again</Text>
+							<Text c='error.4'>Error getting calorie count...please try again</Text>
 						)}
 						{calorieCountLoading && <Text>Calculating calories</Text>}
 						{calorieCountData && (
-							<Group spacing={5} align='baseline'>
+							<Group gap={5} align='baseline'>
 								<Text fw='bold' size='1.5rem'>
 									{calorieCountData.calorieCount}
 								</Text>

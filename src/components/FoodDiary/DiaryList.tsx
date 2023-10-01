@@ -3,7 +3,7 @@ import { Alert, Box, ScrollArea, Stack, Text, useMantineTheme } from '@mantine/c
 import { useDisclosure } from '@mantine/hooks';
 import { FoodItem, MealCategoryType } from '@prisma/client';
 import { useRouter } from 'next/router';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { AlertCircle, CircleX } from 'tabler-icons-react';
 import FoodItemCard from './FoodItemCard';
 import FoodDiaryEntryModal from './FoodDiaryEntryModal';

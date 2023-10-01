@@ -1,4 +1,4 @@
-import { MantineThemeOverride, Tuple } from '@mantine/core';
+import { MantineThemeOverride } from '@mantine/core';
 
 export const themeColors: MantineThemeOverride['colors'] = {
 	primaryPink: [

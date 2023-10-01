@@ -33,20 +33,8 @@ const FoodDiaryEntryModal = ({
 	submissionType,
 	diaryId,
 }: FoodDiaryEntryModalProps) => {
-	if (!foodItem) return null;
-	if (submissionType === 'edit' && !diaryId) {
-		throw new Error('You must submit a diary edit id with a submission type of edit');
-	}
-
 	const { name, standardServingSize, servingUnit, caloriesPerServing } = foodItem;
 	const initialServingSize = initialServingSizeVal ?? standardServingSize;
-	const router = useRouter();
-	const day = router.query.date as string;
-	const category = router.query.mealCategory as MealCategoryType;
-	const { mutateAsync: addDiaryEntryMutation } = api.foodDiary.addEntry.useMutation();
-	const { mutateAsync: editDiaryEntryMutation } = api.foodDiary.editEntry.useMutation();
-	const utils = api.useContext();
-
 	const form = useForm({
 		initialValues: {
 			eatenServingSize: initialServingSize,
@@ -56,6 +44,18 @@ const FoodDiaryEntryModal = ({
 			eatenServingSize: value => (value <= 0 ? 'Must have a serving size' : null),
 		},
 	});
+	const router = useRouter();
+
+	if (!foodItem) return null;
+	if (submissionType === 'edit' && !diaryId) {
+		throw new Error('You must submit a diary edit id with a submission type of edit');
+	}
+
+	const day = router.query.date as string;
+	const category = router.query.mealCategory as MealCategoryType;
+	const { mutateAsync: addDiaryEntryMutation } = api.foodDiary.addEntry.useMutation();
+	const { mutateAsync: editDiaryEntryMutation } = api.foodDiary.editEntry.useMutation();
+	const utils = api.useContext();
 
 	const handleEditDiaryEntry = async (eatenServingSize: number) => {
 		if (!diaryId) return onClose();
@@ -121,7 +121,7 @@ const FoodDiaryEntryModal = ({
 			onClose={handleOnClose}
 			transitionProps={{ transition: 'slide-up', duration: 300 }}
 			fullScreen
-			styles={() => ({
+			style={() => ({
 				body: {
 					height: '90%',
 				},
@@ -130,8 +130,8 @@ const FoodDiaryEntryModal = ({
 			<Modal.Overlay />
 
 			<Modal.Content>
-				<Modal.Header sx={{ justifyContent: 'space-between' }}>
-					<Group position='apart' w='100%'>
+				<Modal.Header style={{ justifyContent: 'space-between' }}>
+					<Group justify='apart' w='100%'>
 						<ActionIcon onClick={handleOnClose}>
 							<ChevronLeft />
 						</ActionIcon>
@@ -151,13 +151,13 @@ const FoodDiaryEntryModal = ({
 				<Modal.Body
 					h='84%'
 					display='flex'
-					sx={{ flexDirection: 'column', justifyContent: 'space-between' }}
+					style={{ flexDirection: 'column', justifyContent: 'space-between' }}
 				>
 					<form onSubmit={form.onSubmit(handleSubmitClick)}>
 						<ScrollArea.Autosize mah='100%'>
 							<Box h={20}></Box>
-							<Stack spacing='xl'>
-								<Group position='center'>
+							<Stack gap='xl'>
+								<Group justify='center'>
 									<NumberInput
 										hideControls
 										data-autofocus
@@ -171,7 +171,7 @@ const FoodDiaryEntryModal = ({
 									Standard serving size: {standardServingSize}
 									{servingUnit}
 								</Text>
-								<Group spacing='xs' position='center'>
+								<Group gap='xs' justify='center'>
 									<Text size='xl'>{totalCalories}</Text>
 									<Text>calories</Text>
 								</Group>
