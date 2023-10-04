@@ -71,7 +71,7 @@ const DiaryList = () => {
 
 	return (
 		<Box>
-			<ScrollArea.Autosize mah='70%' pt='lg'>
+			<ScrollArea.Autosize mah='70%' pt='lg' type='never'>
 				<Stack py='md'>
 					{diaryEntries.map(({ id, foodItem, eatenServingSize }) => (
 						<FoodItemCard

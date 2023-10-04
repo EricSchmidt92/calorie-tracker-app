@@ -154,7 +154,7 @@ const FoodDiaryEntryModal = ({
 					style={{ flexDirection: 'column', justifyContent: 'space-between' }}
 				>
 					<form onSubmit={form.onSubmit(handleSubmitClick)}>
-						<ScrollArea.Autosize mah='100%'>
+						<ScrollArea.Autosize mah='100%' type='never'>
 							<Box h={20}></Box>
 							<Stack gap='xl'>
 								<Group justify='center'>

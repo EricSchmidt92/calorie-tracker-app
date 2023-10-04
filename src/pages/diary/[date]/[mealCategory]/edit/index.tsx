@@ -134,7 +134,7 @@ const EditDiaryPage: NextPage = () => {
 				/>
 			</Box>
 			{searchValue ? (
-				<ScrollArea.Autosize mah='90%' style={{ flex: 2 }}>
+				<ScrollArea.Autosize mah='90%' style={{ flex: 2 }} type='never'>
 					<Stack>
 						<Box h={20}></Box>
 						{error && <Text c='error.4'>Error fetching food items</Text>}

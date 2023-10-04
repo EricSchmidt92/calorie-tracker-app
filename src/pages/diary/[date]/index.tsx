@@ -65,7 +65,7 @@ const DiarySummaryPage: NextPage = () => {
 		: dateTime.toLocaleString({ month: 'long', weekday: 'short', day: '2-digit' });
 
 	return (
-		<ScrollArea>
+		<ScrollArea type='never'>
 			<Stack maw={breakpoints.xs} justify='center' mx='auto'>
 				<CalorieSummaryHeader
 					caloriesConsumed={dailySummary.caloriesConsumed}
