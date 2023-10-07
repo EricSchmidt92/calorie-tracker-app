@@ -1,6 +1,8 @@
 import { api } from '@/utils/api';
 import { Alert, Button, Center, Loader, NumberInput, Stack, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import React from 'react';
 
 interface FormValues {
@@ -12,6 +14,7 @@ const Profile = () => {
 	const { data: profile, isLoading } = api.profile.getProfile.useQuery();
 	const { mutateAsync: updateGoalsMutation } = api.goals.updateGoals.useMutation();
 	const utils = api.useContext();
+	const router = useRouter();
 
 	const updateGoals = async (values: FormValues) => {
 		await updateGoalsMutation(
@@ -47,13 +50,23 @@ const Profile = () => {
 		<Center>
 			<Stack>
 				<Title>Welcome {name && name}</Title>
-				{goals && goals.calorieLimit && goals.goalWeight && (
-					<GoalsForm
-						calorieLimit={goals.calorieLimit}
-						goalWeight={goals.goalWeight}
-						onSubmit={updateGoals}
-					/>
-				)}
+
+				<GoalsForm
+					calorieLimit={goals?.calorieLimit ?? 0}
+					goalWeight={goals?.goalWeight ?? 0}
+					onSubmit={updateGoals}
+				/>
+
+				<Button
+					onClick={async () => {
+						//TODO: this doesn't work figure out the auth context?
+						await signOut();
+						router.push('/login');
+					}}
+					mt={100}
+				>
+					Log Out
+				</Button>
 			</Stack>
 		</Center>
 	);

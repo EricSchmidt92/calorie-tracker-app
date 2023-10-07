@@ -19,13 +19,19 @@ import {
 	CSSVariablesResolver,
 	rem,
 	Box,
+	Alert,
+	NumberInput,
+	Title,
+	Button,
+	Center,
+	NumberInputHandlers,
 } from '@mantine/core';
 import { type Session } from 'next-auth';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { AppProps } from 'next/app';
 
 import { NextPage } from 'next';
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement, ReactNode, useRef } from 'react';
 
 import { IconMap } from '@/utils/mealCategoryUtils';
 import { useDisclosure } from '@mantine/hooks';
@@ -34,6 +40,8 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import * as Icons from 'tabler-icons-react';
 import Link from 'next/link';
+import { Loader } from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
 	getLayout?: (page: ReactElement) => ReactNode;
@@ -129,11 +137,10 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 						header={{ height: rem(75) }}
 						footer={{ height: rem(75) }}
 						withBorder={false}
-						padding={disableAppShell ? 0 : 'lg'}
 						disabled={disableAppShell}
 					>
 						<Header />
-						<AppShell.Main>{getLayout(<Component {...pageProps} />)}</AppShell.Main>
+						<AppShell.Main>{<Component {...pageProps} />}</AppShell.Main>
 						<Footer />
 					</AppShell>
 				</MantineProvider>
@@ -147,10 +154,12 @@ export default api.withTRPC(MyApp);
 const Header = () => {
 	const { colors } = useMantineTheme();
 	const router = useRouter();
+	const { data: sessionData } = useSession();
 	const active = router.pathname === '/profile';
 	const primaryColor = colors.primaryPink[3];
 	const color = active ? primaryColor : colors.dark[0];
 
+	if (!sessionData?.user) return undefined;
 	return (
 		<AppShell.Header color='dark.6'>
 			<Group justify='space-between' p='lg'>
@@ -173,12 +182,13 @@ const Header = () => {
 	);
 };
 
-// TODO: look at chartjs
 const Footer = () => {
 	const { data: sessionData } = useSession();
 	const { colors } = useMantineTheme();
 	const { pathname, ...router } = useRouter();
 	const [opened, { open, close }] = useDisclosure(false);
+	const [weightModalOpened, { open: weightModalOpen, close: weightModalClose }] =
+		useDisclosure(false);
 	const { data: mealCategoryData } = api.mealCategory.getAll.useQuery();
 	const dateQueryParam = router.query.date as string;
 	const date = DateTime.fromISO(dateQueryParam).toISODate();
@@ -229,10 +239,11 @@ const Footer = () => {
 					</NavButton>
 				</Group>
 				<Modal
+					centered
+					h='300px'
 					opened={opened}
 					onClose={close}
 					withCloseButton={false}
-					yOffset='55%'
 					overlayProps={{
 						color: colors.dark[9],
 						opacity: 0.95,
@@ -240,7 +251,17 @@ const Footer = () => {
 					}}
 				>
 					<Stack h='20rem' justify='space-between' align='center'>
-						<SimpleGrid cols={2} spacing='xl' verticalSpacing='xl' w='80%'>
+						<SimpleGrid cols={2} spacing='lg' verticalSpacing='lg' w='80%'>
+							<ModalMenuButton
+								iconName='ScaleOutline'
+								title='Weight'
+								onClick={() => {
+									close();
+									weightModalOpen();
+								}}
+							>
+								Weight
+							</ModalMenuButton>
 							{mealCategoryData?.map(({ type, id }) => (
 								<ModalMenuButton
 									key={id}
@@ -262,13 +283,126 @@ const Footer = () => {
 							size='lg'
 							radius='xl'
 							aria-label='close'
+							onClick={close}
 						>
 							<Icons.X size='1.3rem' strokeWidth={2.25} />
 						</ActionIcon>
 					</Stack>
 				</Modal>
+				<WeightUpdateModal opened={weightModalOpened} onClose={weightModalClose} />
 			</>
 		</AppShell.Footer>
+	);
+};
+
+interface WeightUpdateModalProps {
+	opened: boolean;
+	onClose: () => void;
+}
+
+const WeightUpdateModal = ({ opened, onClose }: WeightUpdateModalProps) => {
+	return (
+		<Modal opened={opened} onClose={onClose} withCloseButton={false} centered>
+			<WeightModalBody onSubmit={onClose} />
+		</Modal>
+	);
+};
+
+const WeightModalBody = ({ onSubmit }: { onSubmit: () => void }) => {
+	const { data, isLoading, error } = api.weightDiary.getCurrentWeight.useQuery();
+
+	if (isLoading) {
+		return (
+			<Center>
+				<Loader size='lg' />;
+			</Center>
+		);
+	}
+
+	if (error) {
+		console.error(error);
+		return (
+			<Alert icon={<Icons.AlertCircle />} title='Uh oh!' color='error.4'>
+				Something went wrong loading your weight. Please try again!
+			</Alert>
+		);
+	}
+
+	return <WeightModalForm onSubmit={onSubmit} weight={data?.weight ?? 0} />;
+};
+
+const WeightModalForm = ({ weight, onSubmit }: { weight: number; onSubmit: () => void }) => {
+	const { mutateAsync: updateCurrentWeightMutation } =
+		api.weightDiary.updateCurrentWeight.useMutation();
+
+	const form = useForm({
+		initialValues: {
+			weight,
+		},
+
+		validate: {
+			weight: value => (value <= 0 ? 'Weight must be a positive number' : null),
+		},
+	});
+
+	const handlersRef = useRef<NumberInputHandlers>(null);
+
+	const handleSubmit = async (updatedWeight: number) => {
+		await updateCurrentWeightMutation(
+			{
+				updatedWeight,
+			},
+			{
+				onError: err => console.error('error: ', err),
+				onSuccess: () => {
+					onSubmit();
+				},
+			}
+		);
+	};
+
+	return (
+		<form onSubmit={form.onSubmit(({ weight }) => handleSubmit(weight))}>
+			<Stack h='200px' justify='space-between' align='center'>
+				<Title order={3} ta='center'>
+					Update your weight
+				</Title>
+
+				<Group wrap='nowrap'>
+					<ActionIcon
+						variant='subtle'
+						size='xl'
+						radius='xl'
+						onClick={() => handlersRef.current?.decrement()}
+					>
+						<Icons.CircleMinus size={45} />
+					</ActionIcon>
+					<NumberInput
+						{...form.getInputProps('weight')}
+						handlersRef={handlersRef}
+						decimalScale={1}
+						hideControls
+					/>
+
+					<ActionIcon
+						variant='subtle'
+						size='xl'
+						radius='xl'
+						onClick={() => handlersRef.current?.increment()}
+					>
+						<Icons.CirclePlus size={45} />
+					</ActionIcon>
+				</Group>
+				<Button
+					radius='xl'
+					variant='gradient'
+					gradient={{ from: 'primaryPink.4', to: 'primaryPink.2' }}
+					type='submit'
+				>
+					Save Changes
+				</Button>
+			</Stack>
+		</form>
 	);
 };
 

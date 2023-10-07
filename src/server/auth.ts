@@ -73,7 +73,7 @@ export const authOptions: NextAuthOptions = {
 		// GoogleProvider({
 		// 	clientId: env.GOOGLE_CLIENT_ID,
 		// 	clientSecret: env.GOOGLE_CLIENT_SECRET,
-		// }),
+		// }), //TODO: add back in once dev server is created
 		/**
 		 * ...add more providers here.
 		 *

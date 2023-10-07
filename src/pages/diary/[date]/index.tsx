@@ -74,7 +74,7 @@ const DiarySummaryPage: NextPage = () => {
 				{dateTime.hasSame(DateTime.now(), 'day')}
 				<Group justify='space-between'>
 					<ActionIcon
-						aria-label='next day'
+						aria-label='previous day'
 						variant='subtle'
 						component={Link}
 						href={`/diary/${dateTime.minus({ day: 1 }).toISODate()}`}
@@ -83,7 +83,7 @@ const DiarySummaryPage: NextPage = () => {
 					</ActionIcon>
 					<Text>{dayFragment}</Text>
 					<ActionIcon
-						aria-label='previous day'
+						aria-label='next day'
 						variant='subtle'
 						component={Link}
 						href={`/diary/${dateTime.plus({ day: 1 }).toISODate()}`}
@@ -91,7 +91,7 @@ const DiarySummaryPage: NextPage = () => {
 						<Icons.ChevronRight />
 					</ActionIcon>
 				</Group>
-				{/* TODO: Change based on some param for the day */}
+
 				{dailySummary?.mealCategorySummaries?.map(dailySummary => (
 					<MealSummaryCard key={dailySummary.id} summary={dailySummary} />
 				))}
@@ -175,9 +175,6 @@ const MealSummaryCard = ({ summary }: MealSummaryCardProps) => {
 	const handleCardClick = () => {
 		router.push(`/diary/${dateTime.toISODate()}/${summary.type}`);
 	};
-
-	// TODO: look into swiping features
-	// TODO: can I get calorie info from api based on barcode?
 
 	const handleAddToMealCategory: MouseEventHandler<SVGElement> = event => {
 		event.stopPropagation();

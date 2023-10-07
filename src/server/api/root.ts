@@ -4,6 +4,7 @@ import { foodItemRouter } from './routers/foodItem';
 import { mealCategoryRouter } from './routers/mealCategory';
 import { profileRouter } from './routers/profile';
 import { goalsRouter } from './routers/goals';
+import { weightDiaryRouter } from './routers/weightDiary';
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
 	mealCategory: mealCategoryRouter,
 	profile: profileRouter,
 	goals: goalsRouter,
+	weightDiary: weightDiaryRouter,
 });
 
 // export type definition of API

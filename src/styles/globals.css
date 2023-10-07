@@ -1,7 +1,7 @@
 html,
 body {
 	background-color: var(--mantine-color-base-6);
-}
+	}
 
 * {
 	overscroll-behavior: none;
