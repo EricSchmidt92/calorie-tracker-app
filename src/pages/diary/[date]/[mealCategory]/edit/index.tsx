@@ -1,6 +1,6 @@
 import DiaryList from '@/components/FoodDiary/DiaryList';
-import FoodDiaryEntryModal from '@/components/FoodDiary/FoodDiaryEntryModal';
-import FoodItemCard from '@/components/FoodDiary/FoodItemCard';
+import { FoodDiaryEntryModal, FoodItemCard } from '@/components/FoodDiary';
+
 import { api } from '@/utils/api';
 import {
 	ActionIcon,

@@ -1,4 +1,4 @@
-import DiaryList from '@/components/FoodDiary/DiaryList';
+import { DiaryList } from '@/components/FoodDiary';
 import { api } from '@/utils/api';
 import { ActionIcon, Box, Button, Group, Stack, Text } from '@mantine/core';
 import { MealCategoryType } from '@prisma/client';

@@ -8,6 +8,12 @@ import React from 'react';
 interface FormValues {
 	goalWeight: number;
 	calorieLimit: number;
+	waterIntake: number;
+}
+
+interface GoalsFormProps {
+	values: FormValues;
+	onSubmit: (values: FormValues) => void;
 }
 
 const Profile = () => {
@@ -17,6 +23,7 @@ const Profile = () => {
 	const router = useRouter();
 
 	const updateGoals = async (values: FormValues) => {
+		console.log('values to update: ', values);
 		await updateGoalsMutation(
 			{
 				...values,
@@ -52,8 +59,11 @@ const Profile = () => {
 				<Title>Welcome {name && name}</Title>
 
 				<GoalsForm
-					calorieLimit={goals?.calorieLimit ?? 0}
-					goalWeight={goals?.goalWeight ?? 0}
+					values={{
+						calorieLimit: goals?.calorieLimit ?? 0,
+						goalWeight: goals?.goalWeight ?? 0,
+						waterIntake: goals?.waterIntake ?? 10,
+					}}
 					onSubmit={updateGoals}
 				/>
 
@@ -74,20 +84,19 @@ const Profile = () => {
 
 export default Profile;
 
-interface GoalsFormProps extends FormValues {
-	onSubmit: (values: FormValues) => void;
-}
-
-const GoalsForm = ({ goalWeight, calorieLimit, onSubmit }: GoalsFormProps) => {
+const GoalsForm = ({ values, onSubmit }: GoalsFormProps) => {
+	const { goalWeight, calorieLimit, waterIntake } = values;
 	const form = useForm<FormValues>({
 		initialValues: {
 			goalWeight,
 			calorieLimit,
+			waterIntake,
 		},
 
 		validate: {
 			goalWeight: value => (value < 0 ? 'Goal Weight cannot be negative' : null),
 			calorieLimit: value => (value < 0 ? 'Calorie Limit cannot be negative' : null),
+			waterIntake: value => (value < 0 ? 'Water Intake cannot be negative' : null),
 		},
 	});
 
@@ -102,6 +111,12 @@ const GoalsForm = ({ goalWeight, calorieLimit, onSubmit }: GoalsFormProps) => {
 			<NumberInput
 				label='Goal Weight'
 				{...form.getInputProps('goalWeight')}
+				allowNegative={false}
+			/>
+
+			<NumberInput
+				label='Water Intake'
+				{...form.getInputProps('waterIntake')}
 				allowNegative={false}
 			/>
 			<Button type='submit'>Update</Button>

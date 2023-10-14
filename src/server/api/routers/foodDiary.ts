@@ -5,6 +5,7 @@ import { $Enums, MealCategoryType } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { DateTime } from 'luxon';
 import { z } from 'zod';
+import { validateAndGetDayBoundaries, validateISOString } from './utils/ISOInputValidator';
 
 const mealCategoryEnum = z.enum<MealCategoryType, [MealCategoryType, ...MealCategoryType[]]>([
 	'Breakfast',
@@ -13,18 +14,9 @@ const mealCategoryEnum = z.enum<MealCategoryType, [MealCategoryType, ...MealCate
 	'Snack',
 ]);
 
-const validateISOString = (dateTime: DateTime) => {
-	if (!dateTime.isValid) {
-		throw new TRPCError({
-			message: 'Invalid date time string',
-			code: 'BAD_REQUEST',
-		});
-	}
-};
-
 const GetDiaryEntrySchema = z.object({
 	category: mealCategoryEnum,
-	day: z.string().nonempty(),
+	day: z.string().min(1),
 });
 
 export interface MealCategorySummary {
@@ -44,24 +36,14 @@ export const foodDiaryRouter = createTRPCRouter({
 	getDailyCalorieSummary: protectedProcedure
 		.input(
 			z.object({
-				day: z.string().nonempty(),
+				day: z.string().min(1),
 			})
 		)
 		.query(async ({ input: { day }, ctx: { prisma, session } }): Promise<DailySummary> => {
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
 
-			validateISOString(dateTime);
-
-			const dayStart = dateTime.startOf('day').toISO();
-			const dayEnd = dateTime.endOf('day').toISO();
-
-			if (!dayStart || !dayEnd) {
-				throw new TRPCError({
-					code: 'BAD_REQUEST',
-					message: 'Invalid date for day passed in',
-				});
-			}
+			const { dayStart, dayEnd } = validateAndGetDayBoundaries(dateTime);
 
 			const entries = await prisma.mealCategory.findMany({
 				include: {
@@ -131,17 +113,7 @@ export const foodDiaryRouter = createTRPCRouter({
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
 
-			validateISOString(dateTime);
-
-			const dayStart = dateTime.startOf('day').toISO();
-			const dayEnd = dateTime.endOf('day').toISO();
-
-			if (!dayStart || !dayEnd) {
-				throw new TRPCError({
-					code: 'BAD_REQUEST',
-					message: 'Invalid date for day passed in',
-				});
-			}
+			const { dayStart, dayEnd } = validateAndGetDayBoundaries(dateTime);
 
 			return prisma.foodDiary.findMany({
 				include: {
@@ -163,7 +135,7 @@ export const foodDiaryRouter = createTRPCRouter({
 	addEntry: protectedProcedure
 		.input(
 			z.object({
-				foodItemId: z.string().nonempty(),
+				foodItemId: z.string().min(1),
 				day: z.string(),
 				category: mealCategoryEnum,
 				eatenServingSize: z.number().nonnegative(),
@@ -171,24 +143,10 @@ export const foodDiaryRouter = createTRPCRouter({
 		)
 		.mutation(async ({ input, ctx: { prisma, session } }) => {
 			const { day, category, foodItemId, eatenServingSize } = input;
-
-			//TODO: export this block to common function?
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
 
 			validateISOString(dateTime);
-
-			const dayStart = dateTime.startOf('day').toISO();
-			const dayEnd = dateTime.endOf('day').toISO();
-
-			if (!dayStart || !dayEnd) {
-				throw new TRPCError({
-					code: 'BAD_REQUEST',
-					message: 'Invalid date for day passed in',
-				});
-			}
-
-			//* end TODO
 
 			return prisma.foodDiary.create({
 				data: {
@@ -253,17 +211,7 @@ export const foodDiaryRouter = createTRPCRouter({
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
 
-			validateISOString(dateTime);
-
-			const dayStart = dateTime.startOf('day').toISO();
-			const dayEnd = dateTime.endOf('day').toISO();
-
-			if (!dayStart || !dayEnd) {
-				throw new TRPCError({
-					code: 'BAD_REQUEST',
-					message: 'Invalid date for day passed in',
-				});
-			}
+			const { dayStart, dayEnd } = validateAndGetDayBoundaries(dateTime);
 
 			return prisma.foodDiary.count({
 				where: {

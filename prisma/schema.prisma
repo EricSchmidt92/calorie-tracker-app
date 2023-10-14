@@ -37,6 +37,7 @@ model Goal {
     userId       String @unique
     goalWeight   Float?
     calorieLimit Int    @default(0)
+    waterIntake  Int    @default(8)
     user         User   @relation(fields: [userId], references: [id])
 }
 
@@ -70,6 +71,13 @@ model FoodDiary {
     mealCategory     MealCategory @relation(fields: [mealCategoryId], references: [id])
     foodItem         FoodItem     @relation(fields: [foodItemId], references: [id])
     user             User         @relation(fields: [userId], references: [id])
+}
+
+model WaterIntakeDiary {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
 }
 
 // Necessary for Next auth
@@ -111,6 +119,7 @@ model User {
     foodDiaryEntries   FoodDiary[]
     weightDiaryEntries WeightDiary[]
     goals              Goal?
+    waterIntakeEntries WaterIntakeDiary[]
 }
 
 model VerificationToken {

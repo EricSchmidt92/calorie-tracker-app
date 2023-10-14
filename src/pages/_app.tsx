@@ -6,25 +6,25 @@ import '@/styles/globals.css';
 import { api } from '@/utils/api';
 import {
 	ActionIcon,
+	Alert,
 	AppShell,
+	Box,
+	Button,
+	CSSVariablesResolver,
+	Center,
 	Group,
 	MantineProvider,
 	Modal,
+	NumberInput,
+	NumberInputHandlers,
 	SimpleGrid,
 	Stack,
 	Text,
-	UnstyledButton,
-	useMantineTheme,
-	createTheme,
-	CSSVariablesResolver,
-	rem,
-	Box,
-	Alert,
-	NumberInput,
 	Title,
-	Button,
-	Center,
-	NumberInputHandlers,
+	UnstyledButton,
+	createTheme,
+	rem,
+	useMantineTheme,
 } from '@mantine/core';
 import { type Session } from 'next-auth';
 import { SessionProvider, useSession } from 'next-auth/react';
@@ -34,14 +34,14 @@ import { NextPage } from 'next';
 import { ReactElement, ReactNode, useRef } from 'react';
 
 import { IconMap } from '@/utils/mealCategoryUtils';
+import { Loader } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import { DateTime } from 'luxon';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import * as Icons from 'tabler-icons-react';
-import Link from 'next/link';
-import { Loader } from '@mantine/core';
-import { useForm } from '@mantine/form';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
 	getLayout?: (page: ReactElement) => ReactNode;
@@ -99,6 +99,14 @@ const theme = createTheme({
 			styles: {
 				root: {
 					backgroundColor: neutral6,
+				},
+			},
+		},
+		Paper: {
+			styles: {
+				root: {
+					backgroundColor: neutral6,
+					color: '#F8F8F2',
 				},
 			},
 		},

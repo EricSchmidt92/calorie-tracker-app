@@ -6,6 +6,12 @@
 	}
 }
 
+.waterIconContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
 .foodInfoCardText {
 	@media (max-width: em(370)) {
 		width: rem(180px);
