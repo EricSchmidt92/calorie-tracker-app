@@ -1,14 +1,11 @@
-import { Button, Center, Text } from '@mantine/core';
+import { Text } from '@mantine/core';
 import { DateTime } from 'luxon';
-import { signIn, useSession } from 'next-auth/react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { NextPageWithLayout } from './_app';
 
 const Home: NextPageWithLayout = () => {
-	const { data: session } = useSession();
-
 	return (
 		<>
 			<Head>
@@ -20,13 +17,8 @@ const Home: NextPageWithLayout = () => {
 					content='minimum-scale=1, initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no'
 				/>
 			</Head>
-			{!session?.user ? (
-				<Center h='100%'>
-					<Button onClick={() => void signIn()}>Login to use app</Button>
-				</Center>
-			) : (
-				<HomeAuthenticated />
-			)}
+
+			<HomeAuthenticated />
 		</>
 	);
 };
