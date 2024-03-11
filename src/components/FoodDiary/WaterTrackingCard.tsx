@@ -56,7 +56,7 @@ const WaterTrackingCard = () => {
 
 			setNumCups(defaultCups);
 		}
-	}, [entryData, goalData]);
+	}, [entryData]);
 
 	if (goalIsLoading || entryIsLoading) {
 		return <Loader />;

@@ -16,6 +16,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/server": "^11.11.0",
+    "@ericblade/quagga2": "^1.8.4",
     "@mantine/core": "^7.1.0",
     "@mantine/form": "^7.1.0",
     "@mantine/hooks": "^7.1.0",
@@ -40,6 +41,7 @@
     "tabler-icons-react": "^1.56.0",
     "tsx": "^3.12.7",
     "uuid": "^9.0.1",
+    "webrtc-adapter": "^8.2.3",
     "workbox-core": "^7.0.0",
     "workbox-precaching": "^7.0.0",
     "workbox-routing": "^7.0.0",

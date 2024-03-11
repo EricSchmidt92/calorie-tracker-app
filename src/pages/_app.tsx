@@ -1,4 +1,5 @@
 import '@mantine/core/styles.css';
+import 'webrtc-adapter';
 
 import { themeColors } from '@/constants/colors';
 import '@/styles/globals.css';

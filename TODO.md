@@ -6,9 +6,11 @@
 
 Look into swiping gestures (react-spring and react-use-gesture)
 
-Animations for certain page transitions (framer motion) - somewhat taken care of with mantine apps hell component
+Animations for certain page transitions (framer motion) - somewhat taken care of with mantine app shell component
 
 ~~Can I get Calorie info from an api based on a barcode?~~ -- yes, open foods facts api
+
+Look into reading barcode from camera in app.
 
 Research and implement open food facts api
 

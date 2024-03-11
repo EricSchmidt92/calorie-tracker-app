@@ -1,6 +1,6 @@
 import { ColorSchemeScript } from '@mantine/core';
 import { createGetInitialProps } from '@mantine/next';
-import Document, { Html, Main, Head, NextScript } from 'next/document';
+import Document, { Head, Html, Main, NextScript } from 'next/document';
 
 const getInitialProps = createGetInitialProps();
 
@@ -13,6 +13,7 @@ class MyDocument extends Document {
 				<Head>
 					<link rel='manifest' href='/manifest.json' />
 					<link rel='apple-touch-icon' href='/logo.png' />
+					<link rel='shortcut icon' href='/favicon.ico' />
 					<ColorSchemeScript defaultColorScheme='dark' />
 				</Head>
 				<body>

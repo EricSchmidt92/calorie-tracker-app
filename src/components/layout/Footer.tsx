@@ -83,6 +83,13 @@ const Footer = () => {
 					>
 						Progress
 					</NavButton>
+					<NavButton
+						onClick={() => router.push('/barcode')}
+						active={pathname === '/barcode'}
+						iconName='Barcode'
+					>
+						Barcode
+					</NavButton>
 				</Group>
 				<Modal
 					centered

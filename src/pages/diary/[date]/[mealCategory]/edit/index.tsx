@@ -1,7 +1,10 @@
-import DiaryList from '@/components/FoodDiary/DiaryList';
 import { FoodDiaryEntryModal, FoodItemCard } from '@/components/FoodDiary';
+import DiaryList from '@/components/FoodDiary/DiaryList';
+import BarcodeScannerModal from '@/components/editPage/BarcodeScannerModal';
+import SubMenu from '@/components/editPage/SubMenu';
 
 import { api } from '@/utils/api';
+import { QuaggaJSResultObject } from '@ericblade/quagga2';
 import {
 	ActionIcon,
 	Badge,
@@ -9,36 +12,20 @@ import {
 	Button,
 	Center,
 	Group,
-	Input,
-	Menu,
-	Modal,
-	NumberInput,
 	ScrollArea,
 	SegmentedControl,
-	Select,
 	Stack,
 	Text,
 	TextInput,
 	useMantineTheme,
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
 import { useDebouncedValue, useDisclosure, useInputState } from '@mantine/hooks';
-import { FoodItem, MealCategoryType, UnitOfMeasurement } from '@prisma/client';
+import { FoodItem, MealCategoryType } from '@prisma/client';
 import { NextPage } from 'next';
 
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import {
-	CirclePlus,
-	CircleX,
-	Dots,
-	Heart,
-	History,
-	List,
-	Plus,
-	Search,
-	X,
-} from 'tabler-icons-react';
+import { Barcode, CirclePlus, CircleX, Heart, History, List, Search, X } from 'tabler-icons-react';
 
 const EditDiaryPage: NextPage = () => {
 	const router = useRouter();
@@ -47,6 +34,7 @@ const EditDiaryPage: NextPage = () => {
 	const { colors } = useMantineTheme();
 	const utils = api.useContext();
 	const [opened, { open, close }] = useDisclosure(false);
+	const [barcodeOpened, { open: barcodeOpen, close: barcodeClose }] = useDisclosure(false);
 	const [selectedItem, setSelectedItem] = useState<FoodItem | undefined>(undefined);
 
 	const day = router.query.date as string;
@@ -64,13 +52,15 @@ const EditDiaryPage: NextPage = () => {
 		open();
 	};
 
-	const { mutateAsync } = api.foodDiary.addEntry.useMutation();
+	const { mutateAsync: barcodeMutation } = api.foodItem.getOrCreateFoodItemByBarcode.useMutation();
+
+	const { mutateAsync: addDiaryEntryMutation } = api.foodDiary.addEntry.useMutation();
 
 	const handleAddDiaryEntry = async (
 		item: FoodItem,
 		eatenServingSize: number = item.standardServingSize
 	) => {
-		await mutateAsync(
+		await addDiaryEntryMutation(
 			{ day, category, foodItemId: item.id, eatenServingSize },
 			{
 				onError: error => {
@@ -84,10 +74,22 @@ const EditDiaryPage: NextPage = () => {
 		);
 	};
 
+	// rgba(75, 171, 209, 1)
+
 	const handleModalClose = () => {
 		setSelectedItem(undefined);
 		setSearchValue('');
 		close();
+	};
+
+	const handleBarcodeModalClose = () => {p
+		barcodeClose();
+	};
+
+	const handleBarcodeDetected = async (barcode: string) => {
+		handleBarcodeModalClose();
+
+		await barcodeMutation({ barcode });
 	};
 
 	return (
@@ -112,7 +114,7 @@ const EditDiaryPage: NextPage = () => {
 
 					<SubMenu />
 				</Group>
-				<Input
+				<TextInput
 					radius='xl'
 					variant='filled'
 					leftSection={<Search size='1rem' />}
@@ -127,10 +129,22 @@ const EditDiaryPage: NextPage = () => {
 									setSearchValue('');
 								}}
 							/>
-						) : undefined
+						) : (
+							<Barcode
+								strokeWidth={1}
+								fill={colors.dark[0]}
+								color={colors.dark[0]}
+								onClick={barcodeOpen}
+							/>
+						)
 					}
 					value={searchValue}
 					onChange={setSearchValue}
+				/>
+				<BarcodeScannerModal
+					opened={barcodeOpened}
+					onClose={handleBarcodeModalClose}
+					onDetected={handleBarcodeDetected}
 				/>
 			</Box>
 			{searchValue ? (
@@ -187,146 +201,6 @@ const EditDiaryPage: NextPage = () => {
 };
 
 export default EditDiaryPage;
-
-const SubMenu = () => {
-	const [opened, { open, close }] = useDisclosure(false);
-	return (
-		<>
-			<Menu position='bottom-end' offset={2} transitionProps={{ transition: 'scale-y' }}>
-				<Menu.Target>
-					<ActionIcon aria-label='more options' size='md' variant='subtle'>
-						<Dots size='4rem' />
-					</ActionIcon>
-				</Menu.Target>
-
-				<Menu.Dropdown bg='base.4'>
-					<Menu.Item onClick={open}>
-						<Group>
-							<Text>Create food</Text>
-							<Plus />
-						</Group>
-					</Menu.Item>
-				</Menu.Dropdown>
-			</Menu>
-
-			<CreateFoodModal opened={opened} onClose={close} />
-		</>
-	);
-};
-
-interface CreateFoodModalProps {
-	opened: boolean;
-	onClose: () => void;
-}
-
-type ModalInitProps = Omit<FoodItem, 'id'>;
-
-const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
-	const form = useForm<ModalInitProps>({
-		initialValues: {
-			name: '',
-			caloriesPerServing: 0,
-			standardServingSize: 0,
-			servingUnit: 'g',
-		},
-	});
-
-	const { mutateAsync: createFoodItemMutation } = api.foodItem.create.useMutation();
-
-	const selectVals: UnitOfMeasurement[] = ['g', 'mL'];
-
-	const handleOnClose = () => {
-		form.reset();
-		onClose();
-	};
-
-	const createFoodItem = async (values: ModalInitProps) => {
-		createFoodItemMutation(
-			{
-				...values,
-			},
-			{
-				onError: error => console.error('something went wrong creating food item: ', error),
-				onSuccess: item => {
-					console.log('item successfully created!: ', item);
-					handleOnClose();
-				},
-			}
-		);
-	};
-
-	return (
-		<Modal.Root
-			opened={opened}
-			onClose={handleOnClose}
-			transitionProps={{ transition: 'slide-up', duration: 300 }}
-			fullScreen
-			style={() => ({
-				body: {
-					height: '90%',
-				},
-			})}
-		>
-			<Modal.Overlay />
-
-			<Modal.Content>
-				<Modal.Header style={{ justifyContent: 'space-between' }}>
-					<ActionIcon aria-label='go back' variant='subtle' onClick={handleOnClose}>
-						<X />
-					</ActionIcon>
-
-					<Modal.Title ta='center' style={{ flex: 2 }} fw='bold' pr='2rem'>
-						Create Food
-					</Modal.Title>
-				</Modal.Header>
-
-				<Modal.Body
-					h='84%'
-					display='flex'
-					style={{ flexDirection: 'column', justifyContent: 'space-between' }}
-				>
-					<form onSubmit={form.onSubmit(createFoodItem)} style={{ height: '100%' }}>
-						<Stack pt='lg' h='100%' w='100%' display='flex' justify='space-between'>
-							<Stack>
-								<TextInput
-									required
-									label='Food Name'
-									placeholder='Chicken'
-									{...form.getInputProps('name')}
-								/>
-
-								<NumberInput
-									aria-label='Calories Per Serving'
-									hideControls
-									label='Calories Per Serving'
-									{...form.getInputProps('caloriesPerServing')}
-								/>
-
-								<NumberInput
-									required
-									hideControls
-									label='Standard Serving size'
-									{...form.getInputProps('standardServingSize')}
-								/>
-
-								<Select
-									required
-									label='Serving Unit'
-									placeholder={selectVals[0]}
-									data={selectVals}
-								/>
-							</Stack>
-
-							<Button tt='uppercase' type='submit' h={50}>
-								Create Food
-							</Button>
-						</Stack>
-					</form>
-				</Modal.Body>
-			</Modal.Content>
-		</Modal.Root>
-	);
-};
 
 const FoodSummaryMainContent = ({ day, category }: { day: string; category: MealCategoryType }) => {
 	const [subMenuSelection, setSubMenuSelection] = useInputState('favorites');

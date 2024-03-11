@@ -47,9 +47,10 @@ model FoodItem {
     caloriesPerServing  Int
     standardServingSize Int
     servingUnit         UnitOfMeasurement @default(g)
+    barcode             String?           @unique
     foodDiaryEntries    FoodDiary[]
 
-    @@index([name])
+    @@index([name, barcode])
 }
 
 model WeightDiary {
