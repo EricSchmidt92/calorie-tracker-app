@@ -1,5 +1,5 @@
-import { prisma } from '../src/server/db';
 import { createId } from '@paralleldrive/cuid2';
+import { prisma } from '../src/server/db';
 async function main() {
 	const breakfastId = createId();
 	const lunchId = createId();
@@ -93,21 +93,23 @@ async function main() {
 		},
 	});
 
-	await prisma.goal.upsert({
-		create: {
-			calorieLimit: 1900,
-			goalWeight: 160,
-			userId: user.id,
-		},
-		update: {
-			calorieLimit: 1900,
-			goalWeight: 160,
-		},
+	if (user.goals) {
+		await prisma.goal.upsert({
+			create: {
+				calorieLimit: 1900,
+				goalWeight: 160,
+				userId: user.id,
+			},
+			update: {
+				calorieLimit: 1900,
+				goalWeight: 160,
+			},
 
-		where: {
-			id: user.goals[0]?.id,
-		},
-	});
+			where: {
+				id: user.goals.id,
+			},
+		});
+	}
 
 	await prisma.foodDiary.createMany({
 		data: [

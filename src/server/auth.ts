@@ -4,7 +4,6 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { type GetServerSidePropsContext } from 'next';
 import { getServerSession, type DefaultSession, type NextAuthOptions } from 'next-auth';
 import DiscordProvider from 'next-auth/providers/discord';
-import GoogleProvider from 'next-auth/providers/google';
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -42,7 +41,6 @@ export const authOptions: NextAuthOptions = {
 			});
 
 			if (!data) {
-				console.log('data: ', data);
 				await prisma.goal.upsert({
 					create: {
 						calorieLimit: 0,
