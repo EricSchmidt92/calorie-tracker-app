@@ -14,9 +14,13 @@ const mealCategoryEnum = z.enum<MealCategoryType, [MealCategoryType, ...MealCate
 	'Snack',
 ]);
 
-const GetDiaryEntrySchema = z.object({
+const getDiaryEntrySchema = z.object({
 	category: mealCategoryEnum,
 	day: z.string().min(1),
+});
+
+const getRecentEntriesSchema = z.object({
+	category: mealCategoryEnum,
 });
 
 export interface MealCategorySummary {
@@ -95,10 +99,7 @@ export const foodDiaryRouter = createTRPCRouter({
 				};
 			});
 
-			const caloriesConsumed = entrySummaries.reduce(
-				(accumulator, { calorieCount }) => accumulator + calorieCount,
-				0
-			);
+			const caloriesConsumed = entrySummaries.reduce((accumulator, { calorieCount }) => accumulator + calorieCount, 0);
 
 			return {
 				calorieLimit: calorieLimit ?? 0,
@@ -107,8 +108,45 @@ export const foodDiaryRouter = createTRPCRouter({
 			};
 		}),
 
+	getRecentEntries: protectedProcedure
+		.input(getRecentEntriesSchema)
+		.query(async ({ input: { category }, ctx: { prisma, session } }) => {
+			const { id: userId } = session.user;
+			const dayStart = DateTime.now().startOf('day').minus({ days: 7 }).toISO();
+			const dayEnd = DateTime.now().endOf('day').toISO();
+
+			if (!dayStart || !dayEnd) {
+				throw new TRPCError({
+					code: 'INTERNAL_SERVER_ERROR',
+					message: 'Something went wrong getting recent entries',
+				});
+			}
+
+			console.log({ dayStart, dayEnd });
+
+			return prisma.foodDiary.findMany({
+				include: {
+					foodItem: true,
+				},
+				where: {
+					userId,
+					date: {
+						gte: dayStart,
+						lte: dayEnd,
+					},
+					mealCategory: {
+						type: category,
+					},
+				},
+				orderBy: {
+					date: 'desc',
+				},
+				take: 10,
+			});
+		}),
+
 	getEntriesByDayAndCategory: protectedProcedure
-		.input(GetDiaryEntrySchema)
+		.input(getDiaryEntrySchema)
 		.query(async ({ ctx: { prisma, session }, input: { day, category } }) => {
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
@@ -206,7 +244,7 @@ export const foodDiaryRouter = createTRPCRouter({
 		}),
 
 	getDiaryEntryCount: protectedProcedure
-		.input(GetDiaryEntrySchema)
+		.input(getDiaryEntrySchema)
 		.query(async ({ input: { day, category }, ctx: { session, prisma } }) => {
 			const dateTime = DateTime.fromISO(day);
 			const userId = session.user.id;
@@ -234,58 +272,53 @@ export const foodDiaryRouter = createTRPCRouter({
 				category: mealCategoryEnum,
 			})
 		)
-		.query(
-			async ({
-				input: { day, category },
-				ctx: { prisma, session },
-			}): Promise<{ calorieCount: number }> => {
-				const dateTime = DateTime.fromISO(day);
-				const userId = session.user.id;
+		.query(async ({ input: { day, category }, ctx: { prisma, session } }): Promise<{ calorieCount: number }> => {
+			const dateTime = DateTime.fromISO(day);
+			const userId = session.user.id;
 
-				validateISOString(dateTime);
+			validateISOString(dateTime);
 
-				const dayStart = dateTime.startOf('day').toISO();
-				const dayEnd = dateTime.endOf('day').toISO();
+			const dayStart = dateTime.startOf('day').toISO();
+			const dayEnd = dateTime.endOf('day').toISO();
 
-				if (!dayStart || !dayEnd) {
-					throw new TRPCError({
-						code: 'BAD_REQUEST',
-						message: 'Invalid date for day passed in',
-					});
-				}
+			if (!dayStart || !dayEnd) {
+				throw new TRPCError({
+					code: 'BAD_REQUEST',
+					message: 'Invalid date for day passed in',
+				});
+			}
 
-				const entries = await prisma.foodDiary.findMany({
-					select: {
-						eatenServingSize: true,
-						foodItem: true,
+			const entries = await prisma.foodDiary.findMany({
+				select: {
+					eatenServingSize: true,
+					foodItem: true,
+				},
+
+				where: {
+					userId,
+					mealCategory: {
+						type: category,
 					},
-
-					where: {
-						userId,
-						mealCategory: {
-							type: category,
-						},
-						date: {
-							gte: dayStart,
-							lte: dayEnd,
-						},
+					date: {
+						gte: dayStart,
+						lte: dayEnd,
 					},
+				},
+			});
+
+			const calorieCount = entries.reduce((total, { eatenServingSize, foodItem }) => {
+				const { caloriesPerServing, standardServingSize } = foodItem;
+				const totalCalories = calculateTotalCalories({
+					standardServingSize,
+					caloriesPerServing,
+					eatenServingSize,
 				});
 
-				const calorieCount = entries.reduce((total, { eatenServingSize, foodItem }) => {
-					const { caloriesPerServing, standardServingSize } = foodItem;
-					const totalCalories = calculateTotalCalories({
-						standardServingSize,
-						caloriesPerServing,
-						eatenServingSize,
-					});
+				return total + totalCalories;
+			}, 0);
 
-					return total + totalCalories;
-				}, 0);
-
-				return {
-					calorieCount,
-				};
-			}
-		),
+			return {
+				calorieCount,
+			};
+		}),
 });

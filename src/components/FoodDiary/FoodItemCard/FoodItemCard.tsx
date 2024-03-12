@@ -2,7 +2,7 @@ import classes from '@/styles/diaryIndex.module.css';
 import { calculateTotalCalories } from '@/utils/caloriesHelper';
 import { Card, Group, Stack, Text } from '@mantine/core';
 import { FoodItem } from '@prisma/client';
-import { ReactNode, MouseEventHandler } from 'react';
+import { MouseEventHandler, ReactNode } from 'react';
 import { Scale } from 'tabler-icons-react';
 
 interface FoodItemCardProps {

@@ -5,8 +5,8 @@ import { FoodItem, MealCategoryType } from '@prisma/client';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { AlertCircle, CircleX } from 'tabler-icons-react';
-import FoodItemCard from './FoodItemCard';
 import FoodDiaryEntryModal from './FoodDiaryEntryModal';
+import FoodItemCard from './FoodItemCard/FoodItemCard';
 
 interface DiaryEntryProps {
 	foodItem: FoodItem;

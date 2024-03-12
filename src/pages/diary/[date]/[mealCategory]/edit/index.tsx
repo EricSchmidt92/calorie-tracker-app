@@ -1,5 +1,7 @@
-import DiaryList from '@/components/FoodDiary/DiaryList';
 import { FoodDiaryEntryModal, FoodItemCard } from '@/components/FoodDiary';
+import DiaryList from '@/components/FoodDiary/DiaryList';
+import AddDiaryEntryButton from '@/components/FoodDiary/FoodItemCard/AddDiaryEntryButton';
+import RecentView from '@/components/FoodDiary/RecentView';
 
 import { api } from '@/utils/api';
 import {
@@ -28,17 +30,7 @@ import { NextPage } from 'next';
 
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import {
-	CirclePlus,
-	CircleX,
-	Dots,
-	Heart,
-	History,
-	List,
-	Plus,
-	Search,
-	X,
-} from 'tabler-icons-react';
+import { CircleX, Dots, Heart, History, List, Plus, Search, X } from 'tabler-icons-react';
 
 const EditDiaryPage: NextPage = () => {
 	const router = useRouter();
@@ -66,10 +58,7 @@ const EditDiaryPage: NextPage = () => {
 
 	const { mutateAsync } = api.foodDiary.addEntry.useMutation();
 
-	const handleAddDiaryEntry = async (
-		item: FoodItem,
-		eatenServingSize: number = item.standardServingSize
-	) => {
+	const handleAddDiaryEntry = async (item: FoodItem, eatenServingSize: number = item.standardServingSize) => {
 		await mutateAsync(
 			{ day, category, foodItemId: item.id, eatenServingSize },
 			{
@@ -144,18 +133,7 @@ const EditDiaryPage: NextPage = () => {
 								<FoodItemCard
 									key={item.id}
 									foodItem={item}
-									icon={
-										<CirclePlus
-											strokeWidth={1}
-											size={50}
-											fill={colors.success[3]}
-											color={colors.neutral[6]}
-											onClick={e => {
-												e.stopPropagation();
-												handleAddDiaryEntry(item);
-											}}
-										/>
-									}
+									icon={<AddDiaryEntryButton item={item} category={category} day={day} />}
 									onClick={() => handleCardClick(item)}
 								/>
 							))}
@@ -228,6 +206,7 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 			caloriesPerServing: 0,
 			standardServingSize: 0,
 			servingUnit: 'g',
+			barcode: '',
 		},
 	});
 
@@ -280,20 +259,11 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 					</Modal.Title>
 				</Modal.Header>
 
-				<Modal.Body
-					h='84%'
-					display='flex'
-					style={{ flexDirection: 'column', justifyContent: 'space-between' }}
-				>
+				<Modal.Body h='84%' display='flex' style={{ flexDirection: 'column', justifyContent: 'space-between' }}>
 					<form onSubmit={form.onSubmit(createFoodItem)} style={{ height: '100%' }}>
 						<Stack pt='lg' h='100%' w='100%' display='flex' justify='space-between'>
 							<Stack>
-								<TextInput
-									required
-									label='Food Name'
-									placeholder='Chicken'
-									{...form.getInputProps('name')}
-								/>
+								<TextInput required label='Food Name' placeholder='Chicken' {...form.getInputProps('name')} />
 
 								<NumberInput
 									aria-label='Calories Per Serving'
@@ -309,12 +279,7 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 									{...form.getInputProps('standardServingSize')}
 								/>
 
-								<Select
-									required
-									label='Serving Unit'
-									placeholder={selectVals[0]}
-									data={selectVals}
-								/>
+								<Select required label='Serving Unit' placeholder={selectVals[0]} data={selectVals} />
 							</Stack>
 
 							<Button tt='uppercase' type='submit' h={50}>
@@ -382,14 +347,7 @@ const FoodSummaryMainContent = ({ day, category }: { day: string; category: Meal
 								<Center>
 									<Box pos='relative'>
 										{!!entryCount && (
-											<Badge
-												variant='filled'
-												color='success.7'
-												size='xs'
-												pos='absolute'
-												bottom={0}
-												right={-10}
-											>
+											<Badge variant='filled' color='success.7' size='xs' pos='absolute' bottom={0} right={-10}>
 												{entryCount}
 											</Badge>
 										)}
@@ -402,7 +360,7 @@ const FoodSummaryMainContent = ({ day, category }: { day: string; category: Meal
 				/>
 			</Box>
 			<>
-				{subMenuSelection === 'recent' && <Text>recent view</Text>}
+				{subMenuSelection === 'recent' && <RecentView category={category} day={day} />}
 				{subMenuSelection === 'favorites' && <Text>favorites view</Text>}
 				{subMenuSelection === 'list' && <DiaryList />}
 			</>

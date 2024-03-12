@@ -1,17 +1,17 @@
+import { FoodItem, UnitOfMeasurement } from '@prisma/client';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { FoodItem, UnitOfMeasurement } from '@prisma/client';
 
-export const unitOfMeasurementSchema = z.enum<
-	UnitOfMeasurement,
-	[UnitOfMeasurement, ...UnitOfMeasurement[]]
->(['g', 'mL']);
+export const unitOfMeasurementSchema = z.enum<UnitOfMeasurement, [UnitOfMeasurement, ...UnitOfMeasurement[]]>([
+	'g',
+	'mL',
+]);
 
 export const foodItemRouter = createTRPCRouter({
 	getFoodItemsByName: protectedProcedure
 		.input(
 			z.object({
-				name: z.string().nonempty(),
+				name: z.string().min(1),
 			})
 		)
 		.query(({ input: { name }, ctx: { prisma } }): Promise<FoodItem[]> => {
