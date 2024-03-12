@@ -1,4 +1,4 @@
-#Calorie Tracker
+# Calorie Tracker
 A LifeSum clone app to help manage calorie intake and track weightloss
 
 
