@@ -30,7 +30,7 @@ import { NextPage } from 'next';
 
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { CircleX, Dots, Heart, History, List, Plus, Search, X } from 'tabler-icons-react';
+import { CircleX, Dots, History, List, Plus, Search, X } from 'tabler-icons-react';
 
 const EditDiaryPage: NextPage = () => {
 	const router = useRouter();
@@ -333,14 +333,15 @@ const FoodSummaryMainContent = ({ day, category }: { day: string; category: Meal
 								</Center>
 							),
 						},
-						{
-							value: 'favorites',
-							label: (
-								<Center>
-									<Heart color={subMenuSelection === 'favorites' ? colors.success[3] : undefined} />
-								</Center>
-							),
-						},
+						// leaving out for now until implementation is complete
+						// {
+						// 	value: 'favorites',
+						// 	label: (
+						// 		<Center>
+						// 			<Heart color={subMenuSelection === 'favorites' ? colors.success[3] : undefined} />
+						// 		</Center>
+						// 	),
+						// },
 						{
 							value: 'list',
 							label: (
