@@ -206,7 +206,6 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 			caloriesPerServing: 0,
 			standardServingSize: 0,
 			servingUnit: 'g',
-			barcode: '',
 		},
 	});
 
