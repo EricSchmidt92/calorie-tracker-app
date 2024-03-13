@@ -293,7 +293,7 @@ const CreateFoodModal = ({ opened, onClose }: CreateFoodModalProps) => {
 };
 
 const FoodSummaryMainContent = ({ day, category }: { day: string; category: MealCategoryType }) => {
-	const [subMenuSelection, setSubMenuSelection] = useInputState('favorites');
+	const [subMenuSelection, setSubMenuSelection] = useInputState('recent');
 	const { colors } = useMantineTheme();
 	const { data: entryCount } = api.foodDiary.getDiaryEntryCount.useQuery({
 		day,
